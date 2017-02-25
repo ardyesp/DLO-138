@@ -746,7 +746,7 @@ void banner()	{
 	tft.setCursor(20, 75);
 	tft.print("Usage: ");
 	tft.setTextColor(ILI9341_YELLOW, ILI9341_BLACK);
-	tft.print("https://github.com/ardyesp/DSO-138");
+	tft.print("https://github.com/ardyesp/DLO-138");
 
 	tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
 	tft.setCursor(20, 100);
