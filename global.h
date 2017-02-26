@@ -1,16 +1,10 @@
-#define APP_DBG
+// comment out following line to use DSO push buttons instead of encoder
+#define USE_ENCODER
 
-// Setup debug printing macros.
-#ifdef APP_DBG
-	#define DBG_INIT(...) 		{ Serial.begin(__VA_ARGS__); 	}
-	#define DBG_PRINT(...) 		{ Serial.print(__VA_ARGS__); 	}
-	#define DBG_PRINTLN(...) 	{ Serial.println(__VA_ARGS__); }
-#else
-	#define DBG_INIT(...) 		{}
-	#define DBG_PRINT(...) 		{}
-	#define DBG_PRINTLN(...) 	{}
-#endif
-
+// serial print macros
+#define DBG_INIT(...) 		{ Serial.begin(__VA_ARGS__); 	}
+#define DBG_PRINT(...) 		{ Serial.print(__VA_ARGS__); 	}
+#define DBG_PRINTLN(...) 	{ Serial.println(__VA_ARGS__); }
 
 #define SERIAL_BAUD_RATE	115200
 
@@ -73,3 +67,6 @@
 // number of pixels waveform moves left/right or up/down
 #define XCURSOR_STEP	25
 #define YCURSOR_STEP	5
+
+
+#define BTN_DEBOUNCE_TIME	350

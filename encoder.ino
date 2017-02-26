@@ -65,3 +65,33 @@ void readEncoderISR()	{
 	}
 }
 
+
+
+long lastABPress = 0;
+
+
+// ------------------------
+// ISR
+void readASwitchISR()	{
+// ------------------------
+	if(millis() - lastABPress < BTN_DEBOUNCE_TIME)
+		return;
+	lastABPress = millis();
+
+	encoderChanged(-1);
+}
+
+
+
+// ------------------------
+// ISR
+void readBSwitchISR()	{
+// ------------------------
+	if(millis() - lastABPress < BTN_DEBOUNCE_TIME)
+		return;
+	lastABPress = millis();
+	
+	encoderChanged(1);
+}
+
+

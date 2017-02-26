@@ -5,11 +5,14 @@
 #include "variables.h"
 
 
+#define FIRMWARE_VERSION	"1.0"
+
 // ------------------------
 void setup()	{
 // ------------------------
 	DBG_INIT(SERIAL_BAUD_RATE);
-	DBG_PRINTLN("Dual channel O Scope");
+	DBG_PRINT("Dual channel O Scope with two logic channels, ver: ");
+	DBG_PRINTLN(FIRMWARE_VERSION);
 
 	// set digital and analog stuff
 	initIO();

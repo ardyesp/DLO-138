@@ -1,4 +1,3 @@
-#define DEBOUNCE_TIME	350
 
 
 // ------------------------
@@ -24,7 +23,7 @@ void btn4ISR()	{
 	// btn pressed or released?
 	if(!pressed && (digitalRead(BTN4) == LOW))	{
 		// debounce
-		if(millis() - pressedTime < DEBOUNCE_TIME)
+		if(millis() - pressedTime < BTN_DEBOUNCE_TIME)
 			return;
 		pressedTime = millis();
 		pressed = true;
@@ -57,7 +56,7 @@ void btn4ISR()	{
 void readESwitchISR()	{
 // ------------------------
 	// debounce
-	if(millis() - lastBtnPress < DEBOUNCE_TIME)
+	if(millis() - lastBtnPress < BTN_DEBOUNCE_TIME)
 		return;
 	lastBtnPress = millis();
 

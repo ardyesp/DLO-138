@@ -518,7 +518,7 @@ void drawLabels()	{
 }
 
 
-#define DRAW_TIMEBASE
+// #define DRAW_TIMEBASE
 
 // ------------------------
 void drawStats()	{
@@ -756,8 +756,12 @@ void banner()	{
 	tft.setCursor(30, 120);
 	tft.print("DSO-138 hardware by JYE-Tech");
 	
+	tft.setCursor(30, 145);
+	tft.print("Firmware version: ");
+	tft.print(FIRMWARE_VERSION);
+
 	tft.setTextSize(1);
-	tft.setCursor(30, 170);
+	tft.setCursor(30, 200);
 	tft.print("GNU GENERAL PUBLIC LICENSE Version 3");
 }
 

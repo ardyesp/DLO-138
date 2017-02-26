@@ -30,9 +30,15 @@ void initIO()	{
 	pinMode(BTN4, INPUT_PULLUP);
 	
 	attachInterrupt(ENCODER_SW, readESwitchISR, FALLING);
+	attachInterrupt(BTN4, btn4ISR, CHANGE);
+	
+#ifdef USE_ENCODER
 	attachInterrupt(ENCODER_A, readEncoderISR, CHANGE);
 	attachInterrupt(ENCODER_B, readEncoderISR, CHANGE);
-	attachInterrupt(BTN4, btn4ISR, CHANGE);
+#else
+	attachInterrupt(ENCODER_A, readASwitchISR, FALLING);
+	attachInterrupt(ENCODER_B, readBSwitchISR, FALLING);
+#endif	
 
 	// init trigger level PWM
 	// start 20KHz square wave on trigger out reference and negative v gen
