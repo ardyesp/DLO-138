@@ -84,14 +84,12 @@ defined there, or add __weak qualifier.
 See: 
 	http://www.stm32duino.com/viewtopic.php?f=3&t=1816
 	https://github.com/leaflabs/libmaple/blob/master/notes/interrupts.txt
+	
 // ------------------------
 extern "C" void __irq_exti9_5(void) {
 // ------------------------
 	// custom interrupt handler for exti 5 to 9
 	// since we have only one interrupt always assume it is Trigger -> exti 8
-	
-	// clear all pending 5-9 interrupts
-    EXTI_BASE->PR =  0x03E0;
 	
 	asm volatile(
 		"	cbnz %[triggered], fin_trig		\n\t"	// if(!triggered)
@@ -104,14 +102,18 @@ extern "C" void __irq_exti9_5(void) {
 		"	mov %[triggered], #1			\n\t"	// triggered = true;
 		
 		"fin_trig:							\n\t"
+		"	ldr r1, =0x40010400				\n\t"	// load EXTI base address
+		"	mov r0, #0x03E0					\n\t"	// clear all 5-9 interrupts 
+		"	str r0, [r1, #20]				\n\t"	// into EXTI_PR
+		"	nop								\n\t"
+		"	nop								\n\t"
 		
 		: [triggered] "+r" (triggered), [tIndex] "+r" (tIndex)
 		: [sIndex] "r" (sIndex), [minSamples] "r" (minSamplesAcquired), [halfSamples] "I" (NUM_SAMPLES/2)
-		: "cc"
+		: "r0", "r1", "cc"
 	);
 }
 */
-
 
 
 // ------------------------

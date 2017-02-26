@@ -69,3 +69,7 @@
 
 #define LED_ON	digitalWrite(BOARD_LED, LOW)
 #define LED_OFF	digitalWrite(BOARD_LED, HIGH)
+
+// number of pixels waveform moves left/right or up/down
+#define XCURSOR_STEP	25
+#define YCURSOR_STEP	5

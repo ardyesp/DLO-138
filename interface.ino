@@ -184,19 +184,19 @@ void encoderChanged(int steps)	{
 			if(steps > 0) incrementWaves(); else decrementWaves();
 			break;
 		case L_window:
-			if(steps > 0) changeXCursor(xCursor + 40); else changeXCursor(xCursor - 40);
+			if(steps > 0) changeXCursor(xCursor + XCURSOR_STEP); else changeXCursor(xCursor - XCURSOR_STEP);
 			break;
 		case L_vPos1:
-			if(steps > 0) changeYCursor(0, yCursors[0] - 5); else changeYCursor(0, yCursors[0] + 5);
+			if(steps > 0) changeYCursor(0, yCursors[0] - YCURSOR_STEP); else changeYCursor(0, yCursors[0] + YCURSOR_STEP);
 			break;
 		case L_vPos2:
-			if(steps > 0) changeYCursor(1, yCursors[1] - 5); else changeYCursor(1, yCursors[1] + 5);
+			if(steps > 0) changeYCursor(1, yCursors[1] - YCURSOR_STEP); else changeYCursor(1, yCursors[1] + YCURSOR_STEP);
 			break;
 		case L_vPos3:
-			if(steps > 0) changeYCursor(2, yCursors[2] - 5); else changeYCursor(2, yCursors[2] + 5);
+			if(steps > 0) changeYCursor(2, yCursors[2] - YCURSOR_STEP); else changeYCursor(2, yCursors[2] + YCURSOR_STEP);
 			break;
 		case L_vPos4:
-			if(steps > 0) changeYCursor(3, yCursors[3] - 5); else changeYCursor(3, yCursors[3] + 5);
+			if(steps > 0) changeYCursor(3, yCursors[3] - YCURSOR_STEP); else changeYCursor(3, yCursors[3] + YCURSOR_STEP);
 			break;
 	}
 	

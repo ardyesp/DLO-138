@@ -83,7 +83,7 @@ void initDisplay()	{
 	tft.fillScreen(ILI9341_BLACK);
 	banner();
 
-	delay(2000);
+	delay(4000);
 
 	// and paint o-scope
 	clearWaves();
@@ -518,7 +518,7 @@ void drawLabels()	{
 }
 
 
-
+#define DRAW_TIMEBASE
 
 // ------------------------
 void drawStats()	{
@@ -720,7 +720,6 @@ void drawVoltage(float volt, int y, boolean mvRange)	{
 		tft.print(volt);
 	}
 
-
 }
 
 
@@ -739,23 +738,27 @@ void clearStats()	{
 void banner()	{
 // ------------------------
 	tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
+	tft.setTextSize(2);
+	tft.setCursor(110, 30);
+	tft.print("DLO-138");
+	tft.drawRect(100, 25, 100, 25, ILI9341_WHITE);
+
 	tft.setTextSize(1);
-	tft.setCursor(20, 50);
+	tft.setCursor(30, 70);
 	tft.print("Dual Channel O-Scope with logic analyzer");
 
-	tft.setCursor(20, 75);
+	tft.setCursor(30, 95);
 	tft.print("Usage: ");
 	tft.setTextColor(ILI9341_YELLOW, ILI9341_BLACK);
 	tft.print("https://github.com/ardyesp/DLO-138");
 
 	tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
-	tft.setCursor(20, 100);
+	tft.setCursor(30, 120);
 	tft.print("DSO-138 hardware by JYE-Tech");
 	
-	
 	tft.setTextSize(1);
-	tft.setCursor(20, 170);
-	tft.print("GNU GENERAL PUBLIC LICENSE Version 2");
+	tft.setCursor(30, 170);
+	tft.print("GNU GENERAL PUBLIC LICENSE Version 3");
 }
 
 
