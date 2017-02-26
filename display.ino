@@ -624,8 +624,8 @@ void calculateStats()	{
 	}
 
 	// find out frequency
-	uint16_t Vavr = freqSumSamples/NUM_SAMPLES;
-	boolean dnWave = (ch1Capture[sIndex] < Vavr);
+	uint16_t fVavr = freqSumSamples/NUM_SAMPLES;
+	boolean dnWave = (ch1Capture[sIndex] < fVavr - 10);
 	boolean firstOne = true;
 	uint16_t cHigh = 0;
 
@@ -640,7 +640,7 @@ void calculateStats()	{
 			k = 0;
 
 		// mark the points where wave transitions the average value
-		if(dnWave && (ch1Capture[k] > Vavr))	{
+		if(dnWave && (ch1Capture[k] > fVavr + 10))	{
 			if(!firstOne)	{
 				sumCW += (sCtr - cHigh);
 				numCycles++;
@@ -652,7 +652,7 @@ void calculateStats()	{
 			cHigh = sCtr;
 		}
 
-		if(!dnWave && (ch1Capture[k] < Vavr))	{
+		if(!dnWave && (ch1Capture[k] < fVavr - 10))	{
 			if(!firstOne)	{
 				sumPW += (sCtr - cHigh);
 				numHCycles++;

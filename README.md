@@ -1,5 +1,6 @@
 # DLO-138
 An open source firmware for DSO-138 Oscilloscope. 
+![Photo](https://github.com/ardyesp/DLO-138/blob/master/pics/pic1.png)
 
 DSO-138 is an excellent piece of hardware based on ARM Cortex M3 core STM32F103 processor and sufficient for most beginner users. The stock firmware, while quite responsive, can use a few improvements. The main shortcoming which prompted the development of DLO-138 firmware is the inability to get waveform data into a computer for further analysis and the lack of a second channel. Engineers troubleshooting hardware issues need to mark reference points on waveform so having another analog or digital channel can greatly improve analysis. This firmware hopes to improve on these issues.
 

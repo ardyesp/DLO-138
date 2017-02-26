@@ -161,7 +161,7 @@ void startSampling(int16_t lDelay)	{
 	
 	if(lDelay < 0)	{
 
-			asm volatile(
+		asm volatile(
 			"	ldrh r9, [%[sIndex]]			\n\t"	// load sIndex value
 
 			"top_1:								\n\t"
@@ -184,9 +184,9 @@ void startSampling(int16_t lDelay)	{
 			"	bne notOverflowed_1				\n\t"
 			"	mov r9, #0						\n\t"	// sIndex = 0;
 
-			"	stmfd sp!,{r0, r1, r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[ch2], %[dCH], %[lCtr]}	\n\t"
+			"	stmfd sp!,{r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[ch2], %[dCH], %[lCtr]}	\n\t"
 			"	bl %[snapMicros]				\n\t"	// micros() - r0 contains the 32bit result
-			"	ldmfd sp!,{r0, r1, r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[ch2], %[dCH], %[lCtr]}	\n\t"
+			"	ldmfd sp!,{r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[ch2], %[dCH], %[lCtr]}	\n\t"
 
 			"notOverflowed_1:					\n\t"
 			"	strh r9, [%[sIndex]]			\n\t"	// save sIndex
@@ -246,9 +246,9 @@ void startSampling(int16_t lDelay)	{
 			"	bne notOverflowed_2				\n\t"
 			"	mov r9, #0						\n\t"	// sIndex = 0;
 
-			"	stmfd sp!,{r0, r1, r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[ch2], %[dCH], %[lCtr]}	\n\t"
+			"	stmfd sp!,{r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[ch2], %[dCH], %[lCtr]}	\n\t"
 			"	bl %[snapMicros]				\n\t"	// micros() - r0 contains the 32bit result
-			"	ldmfd sp!,{r0, r1, r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[ch2], %[dCH], %[lCtr]}	\n\t"
+			"	ldmfd sp!,{r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[ch2], %[dCH], %[lCtr]}	\n\t"
 
 			"notOverflowed_2:					\n\t"
 			"	strh r9, [%[sIndex]]			\n\t"	// save sIndex
@@ -308,9 +308,9 @@ void startSampling(int16_t lDelay)	{
 			"	bne notOverflowed_3				\n\t"
 			"	mov r9, #0						\n\t"	// sIndex = 0;
 
-			"	stmfd sp!,{r0, r1, r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[ch2], %[dCH], %[lCtr], %[tDelay]}	\n\t"
+			"	stmfd sp!,{r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[ch2], %[dCH], %[lCtr], %[tDelay]}	\n\t"
 			"	bl %[snapMicros]				\n\t"	// micros() - r0 contains the 32bit result
-			"	ldmfd sp!,{r0, r1, r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[ch2], %[dCH], %[lCtr], %[tDelay]}	\n\t"
+			"	ldmfd sp!,{r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[ch2], %[dCH], %[lCtr], %[tDelay]}	\n\t"
 
 			"notOverflowed_3:					\n\t"
 			"	strh r9, [%[sIndex]]			\n\t"	// save sIndex
