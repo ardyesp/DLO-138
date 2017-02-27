@@ -6,7 +6,7 @@ DSO-138 is an excellent piece of hardware based on ARM Cortex M3 core STM32F103 
 
 ## Features
 - Two analog channels
-- Two digital logic channels
+- Two digital logic channels (SWDIO and SWDIO pins (PA13 and PA14) on board)
 - Serial port interface for captured waveform data
 - Trigger source selectable from Analog Channel 1 or Digital Channel
 - Option to use rotary encoder instead of + - and SEL switches
@@ -25,6 +25,19 @@ Following changes can be applied selectively, to get maximum functionality from 
 ![Mod Schematic](https://github.com/ardyesp/DLO-138/blob/master/pics/HardwareMod.png)
 
 # Usage:
+	Push button in encoder (SEL if using switches) moves focus to next parameter
+	Left/Right turn in encoder (+/- if using switches) changes the parameter which is in focus
+	Short press OK to HOLD the waveform and output it on serial port
+	Long press OK button:
+	
+		Focus				Action
+		Trigger Level		Zero the trigger level to Analog channel 1
+		Wave X scrollbar	Center waveform on screen (at trigger point)
+		Wave Y cursor		Zero the cursor. If Analog CH1 coupling is GND, waveform reference base is set 
+		Other				Toggle on screen Analog CH1 statistics display
+
+	Press and hold OK button at power up to reset settings to default
+		
 
 # References
 DSO-138 - http://www.jyetech.com/Products/LcdScope/e138.php
