@@ -1,18 +1,12 @@
 
-
 // ------------------------
 const char* getTimebaseLabel()	{
 // ------------------------
 	return tbNames[currentTimeBase];
 }
 
-
-
 // interface operations defined below
-
 long lastBtnPress = 0;
-
-
 
 // ------------------------
 void btn4ISR()	{
@@ -28,7 +22,6 @@ void btn4ISR()	{
 		pressedTime = millis();
 		pressed = true;
 	}
-	
 	
 	if(pressed && (digitalRead(BTN4) == HIGH))	{
 		// debounce
@@ -49,8 +42,6 @@ void btn4ISR()	{
 		}
 	}
 }
-
-
 
 // ------------------------
 void readESwitchISR()	{
@@ -76,19 +67,20 @@ void readESwitchISR()	{
 }
 
 
-
-
 // ------------------------
 void resetParam()	{
 // ------------------------
 	// which label has current focus
 	switch(currentFocus)	{
-		case L_triggerLevel:
-			// set trigger level to 0
-			setTriggerLevel(0);
-			saveParameter(PARAM_TLEVEL, 0);
-			repaintLabels();
+		case L_voltagerange:
+			setVoltageRange(RNG_5V);
 			break;
+    case L_triggerLevel:
+      // set trigger level to 0
+      setTriggerLevel(0);
+      saveParameter(PARAM_TLEVEL, 0);
+      repaintLabels();
+      break;      
 		case L_window:
 			// set x in the middle
 			changeXCursor((NUM_SAMPLES - GRID_WIDTH)/2);
@@ -96,19 +88,22 @@ void resetParam()	{
 		case L_vPos1:
 			// zero the trace base
 			calculateTraceZero(0);
-			changeYCursor(0, -GRID_HEIGHT/2 - 1);
+			changeYCursor(A1, -GRID_HEIGHT/2 - 1);
 			break;
 		case L_vPos2:
 			// zero the trace base
 			calculateTraceZero(1);
-			changeYCursor(1, -GRID_HEIGHT/2 - 1);
+			changeYCursor(A2, -GRID_HEIGHT/2 - 1);
 			break;
 		case L_vPos3:
-			changeYCursor(2, -GRID_HEIGHT/2 - 1);
+			changeYCursor(D1, -GRID_HEIGHT/2 - 1);
 			break;
 		case L_vPos4:
-			changeYCursor(3, -GRID_HEIGHT/2 - 1);
+			changeYCursor(D2, -GRID_HEIGHT/2 - 1);
 			break;
+    case L_vPos5:
+      changeYCursor(D3, -GRID_HEIGHT/2 - 1);
+      break;     
 		default:
 			// toggle stats printing
 			printStats = !printStats;
@@ -126,8 +121,6 @@ void resetParam()	{
 }
 
 
-
-
 // ------------------------
 void calculateTraceZero(int waveID)		{
 // ------------------------
@@ -135,11 +128,18 @@ void calculateTraceZero(int waveID)		{
 	if(couplingPos != CPL_GND)
 		return;
 
+#ifdef ADD_AN2 
 	if(waveID > 1)
 		return;
-	
-	uint16_t *wave = (waveID == 0)? ch1Capture : ch2Capture;
-	
+  uint16_t *wave = (waveID == 0)? ch1Capture : ch2Capture;
+
+#else
+  if(waveID > 0)
+    return;
+    
+uint16_t *wave =  ch1Capture;
+#endif
+  
 	// zero the trace
 	int32_t sumSamples = 0;
 
@@ -160,8 +160,6 @@ void calculateTraceZero(int waveID)		{
 }
 
 
-
-
 // ------------------------
 void encoderChanged(int steps)	{
 // ------------------------
@@ -170,6 +168,9 @@ void encoderChanged(int steps)	{
 		case L_timebase:
 			if(steps > 0) decrementTimeBase(); else	incrementTimeBase();
 			break;
+    case L_voltagerange:
+      if(steps > 0) decrementVoltageRange(); else incrementVoltageRange();
+      break;      
 		case L_triggerType:
 			if(steps > 0) incrementTT(); else decrementTT();
 			break;
@@ -186,29 +187,32 @@ void encoderChanged(int steps)	{
 			if(steps > 0) changeXCursor(xCursor + XCURSOR_STEP); else changeXCursor(xCursor - XCURSOR_STEP);
 			break;
 		case L_vPos1:
-			if(steps > 0) changeYCursor(0, yCursors[0] - YCURSOR_STEP); else changeYCursor(0, yCursors[0] + YCURSOR_STEP);
+			if(steps > 0) changeYCursor(0, yCursors[A1] - YCURSOR_STEP); else changeYCursor(A1, yCursors[A1] + YCURSOR_STEP);
 			break;
 		case L_vPos2:
-			if(steps > 0) changeYCursor(1, yCursors[1] - YCURSOR_STEP); else changeYCursor(1, yCursors[1] + YCURSOR_STEP);
+			if(steps > 0) changeYCursor(A2, yCursors[A2] - YCURSOR_STEP); else changeYCursor(A2, yCursors[A2] + YCURSOR_STEP);
 			break;
 		case L_vPos3:
-			if(steps > 0) changeYCursor(2, yCursors[2] - YCURSOR_STEP); else changeYCursor(2, yCursors[2] + YCURSOR_STEP);
+			if(steps > 0) changeYCursor(D1, yCursors[D1] - YCURSOR_STEP); else changeYCursor(D1, yCursors[D1] + YCURSOR_STEP);
 			break;
 		case L_vPos4:
-			if(steps > 0) changeYCursor(3, yCursors[3] - YCURSOR_STEP); else changeYCursor(3, yCursors[3] + YCURSOR_STEP);
+			if(steps > 0) changeYCursor(D2, yCursors[D2] - YCURSOR_STEP); else changeYCursor(D2, yCursors[D2] + YCURSOR_STEP);
 			break;
+    case L_vPos5:
+      if(steps > 0) changeYCursor(D3, yCursors[D3] - YCURSOR_STEP); else changeYCursor(D3, yCursors[D3] + YCURSOR_STEP);
+      break;      
 	}
 	
 	// manually update display if frozen
 	if(hold)
+  {
+    repaintLabels();
 		drawWaves();
-	
+  }
 	if(triggerType != TRIGGER_AUTO)
 		// break the sampling loop
 		keepSampling = false;
 }
-
-
 
 // ------------------------
 void incrementTLevel()	{
@@ -219,8 +223,6 @@ void incrementTLevel()	{
 	repaintLabels();
 }
 
-
-
 // ------------------------
 void decrementTLevel()	{
 // ------------------------
@@ -230,59 +232,77 @@ void decrementTLevel()	{
 	repaintLabels();
 }
 
-
-// A1, D1, D2, A2 
-// 0, 2, 3, 1
+// A1, D1, D2, D3, A2 
+// 0, 2, 3, 4, 1
 // ------------------------
 void incrementWaves()	{
 // ------------------------
 	// add more waves
-	if(waves[1])	{
-		return;
-	}
-	else if(waves[3])	{
-		waves[1] = true;
-		saveParameter(PARAM_WAVES + 1, waves[1]);
-	}
-	else if(waves[2])	{
-		waves[3] = true;
-		saveParameter(PARAM_WAVES + 3, waves[3]);
-	}
-	else {
-		waves[2] = true;
-		saveParameter(PARAM_WAVES + 2, waves[2]);
-	}
+  if(waves[A2]) {
+    return;
+  }
+  else if(waves[A1])  {
+    waves[D1] = true;
+  }
+   else if(waves[D1])  {
+    waves[D2] = true;
+  }
+#ifdef ADD_D3
+   else if(waves[D2])  {
+    waves[D3] = true;
+  }
+#else
+#ifdef ADD_AN2
+  else if(waves[D2]) {
+    waves[A2] = true;
+  } 
+#endif
+#endif
 
+#ifdef ADD_D3
+#ifdef ADD_AN2
+  else if(waves[D3]) {
+    waves[A2] = true;
+#endif
+#endif
+
+  saveParameter(PARAM_WAVES + 0, waves[A1]);
+  saveParameter(PARAM_WAVES + 1, waves[A2]);
+  saveParameter(PARAM_WAVES + 2, waves[D1]);
+  saveParameter(PARAM_WAVES + 3, waves[D2]);
+  saveParameter(PARAM_WAVES + 4, waves[D3]);
 	repaintLabels();
 }
-
-
 
 
 // ------------------------
 void decrementWaves()	{
 // ------------------------
 	// remove waves
-	if(waves[1])	{
-		waves[1] = false;
-		saveParameter(PARAM_WAVES + 1, waves[1]);
+	if(waves[A2])	{
+		waves[A2] = false;
 	}
-	else if(waves[3])	{
-		waves[3] = false;
-		saveParameter(PARAM_WAVES + 3, waves[3]);
+  else if(waves[D3]) {
+    waves[D3] = false;
+  }
+	else if(waves[D2])	{
+		waves[D2] = false;
 	}
-	else if(waves[2])	{
-		waves[2] = false;
-		saveParameter(PARAM_WAVES + 2, waves[2]);
+	else if(waves[D1])	{
+		waves[D1] = false;
 	}
 	else {
 		return;
 	}
+
+  saveParameter(PARAM_WAVES + 0, waves[A1]);
+  saveParameter(PARAM_WAVES + 1, waves[A2]);
+  saveParameter(PARAM_WAVES + 2, waves[D1]);
+  saveParameter(PARAM_WAVES + 3, waves[D2]);
+  saveParameter(PARAM_WAVES + 4, waves[D3]);
 	
 	repaintLabels();
 }
-
-
 
 // ------------------------
 void setTriggerRising()	{
@@ -294,8 +314,6 @@ void setTriggerRising()	{
 	saveParameter(PARAM_TRIGDIR, triggerRising);
 	repaintLabels();
 }
-
-
 
 // ------------------------
 void setTriggerFalling()	{
@@ -309,8 +327,6 @@ void setTriggerFalling()	{
 }
 
 
-
-
 // ------------------------
 void incrementTT()	{
 // ------------------------
@@ -319,11 +335,9 @@ void incrementTT()	{
 	
 	setTriggerType(triggerType + 1);
 	// trigger type is not saved
-	// saveParameter(PARAM_TRIGTYPE, triggerType);
+	saveParameter(PARAM_TRIGTYPE, triggerType);
 	repaintLabels();
 }
-
-
 
 // ------------------------
 void decrementTT()	{
@@ -332,11 +346,9 @@ void decrementTT()	{
 		return;
 	setTriggerType(triggerType - 1);
 	// trigger type is not saved
-	// saveParameter(PARAM_TRIGTYPE, triggerType);
+	saveParameter(PARAM_TRIGTYPE, triggerType);
 	repaintLabels();
 }
-
-
 
 
 // ------------------------
@@ -348,8 +360,6 @@ void incrementTimeBase()	{
 	setTimeBase(currentTimeBase + 1);
 }
 
-
-
 // ------------------------
 void decrementTimeBase()	{
 // ------------------------
@@ -359,6 +369,37 @@ void decrementTimeBase()	{
 	setTimeBase(currentTimeBase - 1);
 }
 
+// ------------------------
+void incrementVoltageRange()  
+// ------------------------
+{
+  if(currentVoltageRange == RNG_5mV)
+    return;
+  
+  setVoltageRange(currentVoltageRange + 1);
+}
+
+// ------------------------
+void decrementVoltageRange() 
+// ------------------------
+{  
+  if(currentVoltageRange == RNG_20V)
+    return;
+  
+  setVoltageRange(currentVoltageRange - 1);
+}
+
+
+// ------------------------
+void setVoltageRange(uint8_t voltageRange)  {
+// ------------------------
+  currentVoltageRange = voltageRange;
+  rangePos = voltageRange;
+  setVRange(voltageRange);
+  saveParameter(PARAM_VRANGE, currentVoltageRange);
+  // request repainting of screen labels
+  repaintLabels();
+}
 
 
 // ------------------------
@@ -372,8 +413,6 @@ void setTimeBase(uint8_t timeBase)	{
 }
 
 
-
-
 // ------------------------
 void toggleWave(uint8_t num)	{
 // ------------------------
@@ -381,8 +420,6 @@ void toggleWave(uint8_t num)	{
 	saveParameter(PARAM_WAVES + num, waves[num]);
 	repaintLabels();
 }
-
-
 
 // ------------------------
 void changeYCursor(uint8_t num, int16_t yPos)	{
@@ -397,7 +434,6 @@ void changeYCursor(uint8_t num, int16_t yPos)	{
 	saveParameter(PARAM_YCURSOR + num, yCursors[num]);
 	repaintLabels();
 }
-
 
 
 // ------------------------

@@ -12,23 +12,27 @@ void setTriggerType(uint8_t tType)	{
 }
 
 
-
-
 // ------------------------
 void controlLoop()	{
 // ------------------------
 	// start by reading the state of analog system
 	readInpSwitches();
 
-	if(triggerType == TRIGGER_AUTO)	{
+#ifdef DSO_150
+  pollControlSwitches();
+#endif
+
+	if(triggerType == TRIGGER_AUTO)	
+	{
 		captureDisplayCycle(true);
 	}
 	
-	else if(triggerType == TRIGGER_NORM)	{
+	else if(triggerType == TRIGGER_NORM)	
+	{
 		captureDisplayCycle(false);
 	}
-	
-	else	{
+	else	
+	{
 		// single trigger
 		clearWaves();
 		indicateCapturing();
@@ -42,20 +46,27 @@ void controlLoop()	{
 		drawWaves();
 		blinkLED();
 		// dump captured data on serial port
-		dumpSamples();
+		//dumpSamples();
 
 		// freeze display
-		while(hold);
-		
+		while(hold)
+		{
+    #ifdef DSO_150
+      if (pollControlSwitches())
+      {
+        clearWaves();
+        repaintLabels();
+        drawWaves();
+      }
+    #endif
+		}
+   
 		// update display indicating hold released
 		drawLabels();
 	}
 
 	// process any long pending operations which cannot be serviced in ISR
 }
-
-
-
 
 // ------------------------
 void captureDisplayCycle(boolean wTimeOut)	{
@@ -70,13 +81,24 @@ void captureDisplayCycle(boolean wTimeOut)	{
 	if(triggered)
 		blinkLED();
 	
-	if(hold)	{
+	if(hold)	
+	{
 		// update UI labels
 		drawLabels();
 		// dump captured data on serial port
-		dumpSamples();
+		//dumpSamples();
 	}
 	
 	// freeze display if requested
-	while(hold);
+    while(hold)
+    {
+    #ifdef DSO_150
+      if (pollControlSwitches())
+      {        
+         clearWaves();
+         repaintLabels();
+         drawWaves();
+      }
+    #endif
+    }
 }

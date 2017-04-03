@@ -17,11 +17,12 @@
 #endif
 
 #include <Adafruit_GFX.h>
+#include "../../global.h"
 
 /*****************************************************************************/
 #define TFTWIDTH   320
 #define TFTHEIGHT  320		// HACK: Should be 240, but text print gets clipped at 240 width in landscape mode
-
+#define TFTHEIGHTREAL 240
 // Initialization command tables for different LCD controllers
 #define TFTLCD_DELAY 0xFF
 
@@ -33,6 +34,38 @@
 /*****************************************************************************/
 // Define pins and Output Data Registers
 /*****************************************************************************/
+
+#ifdef DSO_150
+
+#define TFT_DATA       GPIOB
+// Port data bits D0..D7:
+// enable only one from below lines corresponding to your HW setup:
+#define TFT_DATA_NIBBLE	0 // take the lower 8 bits: 0..7
+//#define TFT_DATA_NIBBLE	8 // take the higher 8 bits: 8..15
+
+//Control pins |RD |WR |RS |CS |RST|
+#define TFT_RD         PA6
+#define TFT_WR         PC15
+#define TFT_RS         PC14
+#define TFT_CS         PC13
+#define TFT_RST        PB9
+
+#define TFT_RD_MASK    BIT6
+#define TFT_WR_MASK    BIT15
+#define TFT_RS_MASK    BIT14
+#define TFT_CS_MASK    BIT9
+
+// use fast bit toggling, very fast speed!
+#define RD_ACTIVE    { GPIOA->regs->BRR  = TFT_RD_MASK; }
+#define RD_IDLE      { GPIOA->regs->BSRR = TFT_RD_MASK; }
+#define WR_ACTIVE    { GPIOC->regs->BRR  = TFT_WR_MASK; }
+#define WR_IDLE      { GPIOC->regs->BSRR = TFT_WR_MASK; }
+#define CD_COMMAND   { GPIOC->regs->BRR  = TFT_RS_MASK; }
+#define CD_DATA      { GPIOC->regs->BSRR = TFT_RS_MASK; }
+#define CS_ACTIVE    { GPIOC->regs->BRR  = TFT_CS_MASK; }
+#define CS_IDLE      { GPIOC->regs->BSRR = TFT_CS_MASK; }
+
+#else
 
 #define TFT_DATA       GPIOB
 // Port data bits D0..D7:
@@ -47,32 +80,23 @@
 #define TFT_CS         PC13
 #define TFT_RST        PB11
 
-#if 0
-	// use old definition, standard bit toggling, low speed
-	#define RD_ACTIVE    digitalWrite(TFT_RD, LOW)
-	#define RD_IDLE      digitalWrite(TFT_RD, HIGH)
-	#define WR_ACTIVE    digitalWrite(TFT_WR, LOW)
-	#define WR_IDLE      digitalWrite(TFT_WR, HIGH)
-	#define CD_COMMAND   digitalWrite(TFT_RS, LOW)
-	#define CD_DATA      digitalWrite(TFT_RS, HIGH)
-	#define CS_ACTIVE    digitalWrite(TFT_CS, LOW)
-	#define CS_IDLE      digitalWrite(TFT_CS, HIGH)
-#else
-	#define TFT_RD_MASK    BIT10
-	#define TFT_WR_MASK    BIT15
-	#define TFT_RS_MASK    BIT14
-	#define TFT_CS_MASK    BIT13
+#define TFT_RD_MASK    BIT10
+#define TFT_WR_MASK    BIT15
+#define TFT_RS_MASK    BIT14
+#define TFT_CS_MASK    BIT13
 
-	// use fast bit toggling, very fast speed!
-	#define RD_ACTIVE    { GPIOB->regs->BRR  = TFT_RD_MASK; }
-	#define RD_IDLE      { GPIOB->regs->BSRR = TFT_RD_MASK; }
-	#define WR_ACTIVE    { GPIOC->regs->BRR  = TFT_WR_MASK; }
-	#define WR_IDLE      { GPIOC->regs->BSRR = TFT_WR_MASK; }
-	#define CD_COMMAND   { GPIOC->regs->BRR  = TFT_RS_MASK; }
-	#define CD_DATA      { GPIOC->regs->BSRR = TFT_RS_MASK; }
-	#define CS_ACTIVE    { GPIOC->regs->BRR  = TFT_CS_MASK; }
-	#define CS_IDLE      { GPIOC->regs->BSRR = TFT_CS_MASK; }
+// use fast bit toggling, very fast speed!
+#define RD_ACTIVE    { GPIOB->regs->BRR  = TFT_RD_MASK; }
+#define RD_IDLE      { GPIOB->regs->BSRR = TFT_RD_MASK; }
+#define WR_ACTIVE    { GPIOC->regs->BRR  = TFT_WR_MASK; }
+#define WR_IDLE      { GPIOC->regs->BSRR = TFT_WR_MASK; }
+#define CD_COMMAND   { GPIOC->regs->BRR  = TFT_RS_MASK; }
+#define CD_DATA      { GPIOC->regs->BSRR = TFT_RS_MASK; }
+#define CS_ACTIVE    { GPIOC->regs->BRR  = TFT_CS_MASK; }
+#define CS_IDLE      { GPIOC->regs->BSRR = TFT_CS_MASK; }
+
 #endif
+
 
 #define WR_STROBE { WR_ACTIVE; WR_IDLE; }
 

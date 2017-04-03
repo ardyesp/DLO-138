@@ -98,6 +98,7 @@ void Adafruit_TFTLCD_8bit_STM32::reset(void)
     digitalWrite(TFT_RST, HIGH);
     delay(100);
   }
+  
 /*
   // Data transfer sync
   CS_ACTIVE;
@@ -194,7 +195,7 @@ void Adafruit_TFTLCD_8bit_STM32::drawFastHLine(int16_t x, int16_t y, int16_t len
 
   // Initial off-screen clipping
   if((length <= 0     ) ||
-     (y      <  0     ) || ( y                  >= TFTHEIGHT) ||
+     (y      <  0     ) || ( y                  >= TFTHEIGHTREAL) ||
      (x      >= TFTWIDTH) || ((x2 = (x+length-1)) <  0      )) return;
 
   if(x < 0) {        // Clip left
@@ -208,7 +209,7 @@ void Adafruit_TFTLCD_8bit_STM32::drawFastHLine(int16_t x, int16_t y, int16_t len
 
   setAddrWindow(x, y, x2, y);
   flood(color, length);
-  if(driver == ID_932X) setAddrWindow(0, 0, TFTWIDTH - 1, TFTHEIGHT - 1);
+  if(driver == ID_932X) setAddrWindow(0, 0, TFTWIDTH - 1, TFTHEIGHTREAL - 1);
   else                  hx8347g_setLR();
 }
 
@@ -216,23 +217,23 @@ void Adafruit_TFTLCD_8bit_STM32::drawFastHLine(int16_t x, int16_t y, int16_t len
 void Adafruit_TFTLCD_8bit_STM32::drawFastVLine(int16_t x, int16_t y, int16_t length, uint16_t color)
 {
   int16_t y2;
-
+	
   // Initial off-screen clipping
   if((length <= 0      ) ||
      (x      <  0      ) || ( x                  >= TFTWIDTH) ||
-     (y      >= TFTHEIGHT) || ((y2 = (y+length-1)) <  0     )) return;
+     (y      >= TFTHEIGHTREAL) || ((y2 = (y+length-1)) <  0     )) return;
   if(y < 0) {         // Clip top
     length += y;
     y       = 0;
   }
-  if(y2 >= TFTHEIGHT) { // Clip bottom
-    y2      = TFTHEIGHT - 1;
+  if(y2 >= TFTHEIGHTREAL) { // Clip bottom
+    y2      = TFTHEIGHTREAL - 1;
     length  = y2 - y + 1;
   }
 
   setAddrWindow(x, y, x, y2);
   flood(color, length);
-  if(driver == ID_932X) setAddrWindow(0, 0, TFTWIDTH - 1, TFTHEIGHT - 1);
+  if(driver == ID_932X) setAddrWindow(0, 0, TFTWIDTH - 1, TFTHEIGHTREAL - 1);
   else                  hx8347g_setLR();
 }
 
@@ -243,7 +244,7 @@ void Adafruit_TFTLCD_8bit_STM32::fillRect(int16_t x1, int16_t y1, int16_t w, int
 
   // Initial off-screen clipping
   if( (w            <= 0     ) ||  (h             <= 0      ) ||
-      (x1           >= TFTWIDTH) ||  (y1            >= TFTHEIGHT) ||
+      (x1           >= TFTWIDTH) ||  (y1            >= TFTHEIGHTREAL) ||
      ((x2 = x1+w-1) <  0     ) || ((y2  = y1+h-1) <  0      )) return;
   if(x1 < 0) { // Clip left
     w += x1;
@@ -257,14 +258,14 @@ void Adafruit_TFTLCD_8bit_STM32::fillRect(int16_t x1, int16_t y1, int16_t w, int
     x2 = TFTWIDTH - 1;
     w  = x2 - x1 + 1;
   }
-  if(y2 >= TFTHEIGHT) { // Clip bottom
-    y2 = TFTHEIGHT - 1;
+  if(y2 >= TFTHEIGHTREAL) { // Clip bottom
+    y2 = TFTHEIGHTREAL - 1;
     h  = y2 - y1 + 1;
   }
 
   setAddrWindow(x1, y1, x2, y2);
   flood(fillcolor, (uint32_t)w * (uint32_t)h);
-  if(driver == ID_932X) setAddrWindow(0, 0, TFTWIDTH - 1, TFTHEIGHT - 1);
+  if(driver == ID_932X) setAddrWindow(0, 0, TFTWIDTH - 1, TFTHEIGHTREAL - 1);
   else                  hx8347g_setLR();
 }
 
@@ -283,16 +284,16 @@ void Adafruit_TFTLCD_8bit_STM32::fillScreen(uint16_t color)
     // address window must be set for each drawing operation.  However,
     // this display takes rotation into account for the parameters, no
     // need to do extra rotation math here.
-    setAddrWindow(0, 0, TFTWIDTH - 1, TFTHEIGHT - 1);
+    setAddrWindow(0, 0, TFTWIDTH - 1, TFTHEIGHTREAL - 1);
   }
-  flood(color, (long)TFTWIDTH * (long)TFTHEIGHT);
+  flood(color, (long)TFTWIDTH * (long)TFTHEIGHTREAL);
 }
 
 /*****************************************************************************/
 void Adafruit_TFTLCD_8bit_STM32::drawPixel(int16_t x, int16_t y, uint16_t color)
 {
   // Clip
-  if((x < 0) || (y < 0) || (x >= TFTWIDTH) || (y >= TFTHEIGHT)) return;
+  if((x < 0) || (y < 0) || (x >= TFTWIDTH) || (y >= TFTHEIGHTREAL)) return;
 
   if(driver == ID_932X) {
 
@@ -315,7 +316,7 @@ void Adafruit_TFTLCD_8bit_STM32::drawPixel(int16_t x, int16_t y, uint16_t color)
     CD_COMMAND; write8(0x22); CD_DATA; write8(hi); write8(lo);
 
   } else if ((driver == ID_9341) || (driver == ID_HX8357D)) {
-    setAddrWindow(x, y, TFTWIDTH-1, TFTHEIGHT-1);
+    setAddrWindow(x, y, TFTWIDTH-1, TFTHEIGHTREAL-1);
     writeRegister16(0x2C, color);
   }
 }
@@ -452,7 +453,7 @@ static void writeCommand(uint8_t c)
 /*****************************************************************************/
 uint16_t Adafruit_TFTLCD_8bit_STM32::readPixel(int16_t x, int16_t y)
 {
-  if((x < 0) || (y < 0) || (x >= TFTWIDTH) || (y >= TFTHEIGHT)) return 0;
+  if((x < 0) || (y < 0) || (x >= TFTWIDTH) || (y >= TFTHEIGHTREAL)) return 0;
 
   if(driver == ID_932X) {
 

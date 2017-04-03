@@ -13,8 +13,6 @@ uint16_t *sIndexPtr = &sIndex;
 volatile boolean *keepSamplingPtr = &keepSampling;
 volatile boolean *triggeredPtr = &triggered;
 
-
-
 // ------------------------
 void setSamplingRate(uint8_t timeBase)	{
 // ------------------------
@@ -25,8 +23,6 @@ void setSamplingRate(uint8_t timeBase)	{
 	// disable scan timeout timer
 	Timer2.pause();
 }
-
-
 
 // ------------------------
 void setTriggerRising(boolean rising)	{
@@ -42,8 +38,6 @@ void setTriggerRising(boolean rising)	{
 		attachInterrupt(TRIGGER_IN, triggerISR, FALLING);
 }
 
-
-
 // ------------------------
 void sampleWaves(boolean wTimeout)	{
 // ------------------------
@@ -58,10 +52,7 @@ void sampleWaves(boolean wTimeout)	{
 }
 
 
-
 // local operations below
-
-
 
 // ------------------------
 void startScanTimeout(int16_t mSec)	{
@@ -71,10 +62,6 @@ void startScanTimeout(int16_t mSec)	{
 	Timer2.setPeriod(mSec * 1000);
 	Timer2.resume();
 }
-
-
-
-
 
 /*
 Custom handler for Trigger line interrupt (EXTI8). This avoids the 
@@ -131,9 +118,6 @@ void triggerISR(void) {
 	}
 } 
 
-
-
-
 // ------------------------
 void scanTimeoutISR(void) {
 // ------------------------
@@ -141,9 +125,6 @@ void scanTimeoutISR(void) {
 	// disable scan timeout timer
 	Timer2.pause();
 } 
-
-
-
 
 // ------------------------
 void startSampling(int16_t lDelay)	{
@@ -172,22 +153,32 @@ void startSampling(int16_t lDelay)	{
 
 			"	ldr r0, [r1, #0x4C]				\n\t"	// get and save ADC1 DR
 			"	strh r0, [%[ch1], r9, lsl #1]	\n\t"
+#ifdef ADD_AN2       
 			"	ldr r0, [r1, #0x44C]			\n\t"	// get and save ADC2 DR
 			"	strh r0, [%[ch2], r9, lsl #1]	\n\t"
+#endif
 
+#ifdef DSO_150
+      " ldr r1, =0x40010C00       \n\t" // load GPIOB address
+#else
 			"	ldr r1, =0x40010800				\n\t"	// load GPIOA address
-			"	ldr r0, [r1, #0x08]				\n\t"	// get and save GPIOA IDR
+#endif     
+			"	ldr r0, [r1, #0x08]				\n\t"	// get and save IDR
 			"	strh r0, [%[dCH], r9, lsl #1]	\n\t"
 
 			"	adds r9, #1						\n\t"	// increment sIndex
 			"	cmp r9, %[nSamp]				\n\t"	// if(sIndex == NUM_SAMPLES)
 			"	bne notOverflowed_1				\n\t"
 			"	mov r9, #0						\n\t"	// sIndex = 0;
-
+#ifdef ADD_AN2   
 			"	stmfd sp!,{r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[ch2], %[dCH], %[lCtr]}	\n\t"
 			"	bl %[snapMicros]				\n\t"	// micros() - r0 contains the 32bit result
 			"	ldmfd sp!,{r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[ch2], %[dCH], %[lCtr]}	\n\t"
-
+#else
+      " stmfd sp!,{r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[dCH], %[lCtr]} \n\t"
+      " bl %[snapMicros]        \n\t" // micros() - r0 contains the 32bit result
+      " ldmfd sp!,{r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[dCH], %[lCtr]} \n\t"
+#endif
 			"notOverflowed_1:					\n\t"
 			"	strh r9, [%[sIndex]]			\n\t"	// save sIndex
 
@@ -204,7 +195,11 @@ void startSampling(int16_t lDelay)	{
 
 			: 
 			: [keepSampling] "r" (keepSamplingPtr), [sIndex] "r" (sIndexPtr), [triggered] "r" (triggeredPtr), 
+#ifdef ADD_AN2       
 				[ch1] "r" (ch1Capture), [ch2] "r" (ch2Capture), [dCH] "r" (bitStore), [lCtr] "r" (lCtr),
+#else
+        [ch1] "r" (ch1Capture), [dCH] "r" (bitStore), [lCtr] "r" (lCtr),
+#endif
 				[nSamp] "I" (NUM_SAMPLES), [halfSamples] "I" (NUM_SAMPLES/2),
 				[snapMicros] "i" (snapMicros)
 			: "r0", "r1", "r9", "memory", "cc"
@@ -226,19 +221,25 @@ void startSampling(int16_t lDelay)	{
 			"	ldr r0, [r1, #0]				\n\t"	// ADC1 SR
 			"	lsls r0, r0, #30				\n\t"	// get to EOC bit
 			"	bpl	waitADC1_2					\n\t"
-
+#ifdef ADD_AN2  
 			"waitADC2_2:						\n\t"
 			"	ldr r0, [r1, #0x400]			\n\t"	// ADC2 SR
 			"	lsls r0, r0, #30				\n\t"	// get to EOC bit
 			"	bpl	waitADC2_2					\n\t"
-
+#endif
 			"	ldr r0, [r1, #0x4C]				\n\t"	// get and save ADC1 DR
 			"	strh r0, [%[ch1], r9, lsl #1]	\n\t"
+#ifdef ADD_AN2       
 			"	ldr r0, [r1, #0x44C]			\n\t"	// get and save ADC2 DR
 			"	strh r0, [%[ch2], r9, lsl #1]	\n\t"
+#endif
 
-			"	ldr r1, =0x40010800				\n\t"	// load GPIOA address
-			"	ldr r0, [r1, #0x08]				\n\t"	// get and save GPIOA IDR
+#ifdef DSO_150
+      " ldr r1, =0x40010C00       \n\t" // load GPIOB address
+#else
+      " ldr r1, =0x40010800       \n\t" // load GPIOA address
+#endif     
+			"	ldr r0, [r1, #0x08]				\n\t"	// get and save IDR
 			"	strh r0, [%[dCH], r9, lsl #1]	\n\t"
 
 			"	adds r9, #1						\n\t"	// increment sIndex
@@ -246,9 +247,15 @@ void startSampling(int16_t lDelay)	{
 			"	bne notOverflowed_2				\n\t"
 			"	mov r9, #0						\n\t"	// sIndex = 0;
 
+#ifdef ADD_AN2   
 			"	stmfd sp!,{r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[ch2], %[dCH], %[lCtr]}	\n\t"
 			"	bl %[snapMicros]				\n\t"	// micros() - r0 contains the 32bit result
 			"	ldmfd sp!,{r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[ch2], %[dCH], %[lCtr]}	\n\t"
+#else
+      " stmfd sp!,{r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[dCH], %[lCtr]} \n\t"
+      " bl %[snapMicros]        \n\t" // micros() - r0 contains the 32bit result
+      " ldmfd sp!,{r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[dCH], %[lCtr]} \n\t"
+#endif
 
 			"notOverflowed_2:					\n\t"
 			"	strh r9, [%[sIndex]]			\n\t"	// save sIndex
@@ -266,7 +273,11 @@ void startSampling(int16_t lDelay)	{
 
 			: 
 			: [keepSampling] "r" (keepSamplingPtr), [sIndex] "r" (sIndexPtr), [triggered] "r" (triggeredPtr), 
-				[ch1] "r" (ch1Capture), [ch2] "r" (ch2Capture), [dCH] "r" (bitStore), [lCtr] "r" (lCtr),
+#ifdef ADD_AN2       
+        [ch1] "r" (ch1Capture), [ch2] "r" (ch2Capture), [dCH] "r" (bitStore), [lCtr] "r" (lCtr),
+#else
+        [ch1] "r" (ch1Capture), [dCH] "r" (bitStore), [lCtr] "r" (lCtr),
+#endif        
 				[nSamp] "I" (NUM_SAMPLES), [halfSamples] "I" (NUM_SAMPLES/2),
 				[snapMicros] "i" (snapMicros)
 			: "r0", "r1", "r9", "memory", "cc"
@@ -288,19 +299,24 @@ void startSampling(int16_t lDelay)	{
 			"	ldr r0, [r1, #0]				\n\t"	// ADC1 SR
 			"	lsls r0, r0, #30				\n\t"	// get to EOC bit
 			"	bpl	waitADC1_3					\n\t"
-
+#ifdef ADD_AN2  
 			"waitADC2_3:						\n\t"
 			"	ldr r0, [r1, #0x400]			\n\t"	// ADC2 SR
 			"	lsls r0, r0, #30				\n\t"	// get to EOC bit
 			"	bpl	waitADC2_3					\n\t"
-
+#endif
 			"	ldr r0, [r1, #0x4C]				\n\t"	// get and save ADC1 DR
 			"	strh r0, [%[ch1], r9, lsl #1]	\n\t"
+#ifdef ADD_AN2
 			"	ldr r0, [r1, #0x44C]			\n\t"	// get and save ADC2 DR
 			"	strh r0, [%[ch2], r9, lsl #1]	\n\t"
-
-			"	ldr r1, =0x40010800				\n\t"	// load GPIOA address
-			"	ldr r0, [r1, #0x08]				\n\t"	// get and save GPIOA IDR
+#endif
+#ifdef DSO_150
+      " ldr r1, =0x40010C00       \n\t" // load GPIOB address
+#else
+      " ldr r1, =0x40010800       \n\t" // load GPIOA address
+#endif     
+			"	ldr r0, [r1, #0x08]				\n\t"	// get and save IDR
 			"	strh r0, [%[dCH], r9, lsl #1]	\n\t"
 
 			"	adds r9, #1						\n\t"	// increment sIndex
@@ -308,9 +324,15 @@ void startSampling(int16_t lDelay)	{
 			"	bne notOverflowed_3				\n\t"
 			"	mov r9, #0						\n\t"	// sIndex = 0;
 
+#ifdef ADD_AN2  
 			"	stmfd sp!,{r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[ch2], %[dCH], %[lCtr], %[tDelay]}	\n\t"
 			"	bl %[snapMicros]				\n\t"	// micros() - r0 contains the 32bit result
 			"	ldmfd sp!,{r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[ch2], %[dCH], %[lCtr], %[tDelay]}	\n\t"
+#else
+      " stmfd sp!,{r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[dCH], %[lCtr], %[tDelay]}  \n\t"
+      " bl %[snapMicros]        \n\t" // micros() - r0 contains the 32bit result
+      " ldmfd sp!,{r9, %[keepSampling], %[sIndex], %[triggered], %[ch1], %[dCH], %[lCtr], %[tDelay]}  \n\t"
+#endif
 
 			"notOverflowed_3:					\n\t"
 			"	strh r9, [%[sIndex]]			\n\t"	// save sIndex
@@ -333,16 +355,17 @@ void startSampling(int16_t lDelay)	{
 
 			: 
 			: [keepSampling] "r" (keepSamplingPtr), [sIndex] "r" (sIndexPtr), [triggered] "r" (triggeredPtr), 
-				[ch1] "r" (ch1Capture), [ch2] "r" (ch2Capture), [dCH] "r" (bitStore), [lCtr] "r" (lCtr),
+#ifdef ADD_AN2       
+        [ch1] "r" (ch1Capture), [ch2] "r" (ch2Capture), [dCH] "r" (bitStore), [lCtr] "r" (lCtr),
+#else
+        [ch1] "r" (ch1Capture), [dCH] "r" (bitStore), [lCtr] "r" (lCtr),
+#endif        
 				[nSamp] "I" (NUM_SAMPLES), [halfSamples] "I" (NUM_SAMPLES/2), [tDelay] "r" (lDelay),
 				[snapMicros] "i" (snapMicros)
 			: "r0", "r1", "r9", "memory", "cc"
 		);		
-	
 	}
-	
 }
-
 
 
 // ------------------------
@@ -354,9 +377,6 @@ inline void snapMicros()	{
 }
 
 
-
-
-
 // ------------------------
 void dumpSamples()	{
 // ------------------------
@@ -366,7 +386,9 @@ void dumpSamples()	{
 	DBG_PRINT("Timebase: "); DBG_PRINT(getTimebaseLabel()); DBG_PRINTLN("/div");
 	DBG_PRINT("Actual Timebase (us): "); DBG_PRINTLN(timePerSample * 25);
 	DBG_PRINT("CH1 Coupling: "); DBG_PRINT(cplNames[couplingPos]); DBG_PRINT(", Range: "); DBG_PRINT(rngNames[rangePos]); DBG_PRINTLN("/div");
+#ifdef ADD_AN2  
 	DBG_PRINTLN("CH2 Coupling: --, Range: +-2048");
+#endif
 
 	DBG_PRINT("Triggered: "); 
 	if(triggered)	{
@@ -407,7 +429,23 @@ void dumpSamples()	{
 	}
 	
 	DBG_PRINTLN("");
-	DBG_PRINTLN("Time\tCH1\tCH2\tD_CH1\tD_CH2");
+
+	DBG_PRINT("Time\tCH1");
+
+#ifdef ADD_AN2  
+  DBG_PRINT("\tCH2");
+#endif
+	 
+  DBG_PRINT("\tD_CH1");
+  DBG_PRINT("\tD_CH2");
+
+
+#ifdef ADD_D3
+  DBG_PRINT("\tD_CH3");
+#endif
+
+    DBG_PRINTLN("");
+    
 	uint16_t idx = 0;
 	
 	// sampling stopped at sIndex - 1
@@ -421,8 +459,6 @@ void dumpSamples()	{
 }
 
 
-
-
 // ------------------------
 void printSample(uint16_t k, float timeStamp) {
 // ------------------------
@@ -430,11 +466,25 @@ void printSample(uint16_t k, float timeStamp) {
 	DBG_PRINT("\t");
 	DBG_PRINT((ch1Capture[k] - zeroVoltageA1) * adcMultiplier[rangePos]);
 	DBG_PRINT("\t");
+#ifdef ADD_AN2    
 	DBG_PRINT(ch2Capture[k] - zeroVoltageA2);
 	DBG_PRINT("\t");
+#endif
+
+#ifdef DSO_150
 	DBG_PRINT((bitStore[k] & 0x2000) ? 1 : 0);
 	DBG_PRINT("\t");
-	DBG_PRINT((bitStore[k] & 0x4000) ? 1 : 0);
+  DBG_PRINT((bitStore[k] & 0x4000) ? 1 : 0);
+  DBG_PRINT("\t");
+#ifdef ADD_D3  
+	DBG_PRINT((bitStore[k] & 0x8000) ? 1 : 0);
+#endif
+#else
+  DBG_PRINT((bitStore[k] & 0x2000) ? 1 : 0);
+  DBG_PRINT("\t");
+  DBG_PRINT((bitStore[k] & 0x4000) ? 1 : 0);
+  DBG_PRINT("\t");
+#endif
 	
 	if(triggered && (tIndex == k))
 		DBG_PRINT("\t<--TRIG");

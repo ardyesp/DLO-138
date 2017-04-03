@@ -2,10 +2,10 @@
 #define PORTRAIT 		0
 #define LANDSCAPE 		1
 
-#define TFT_WIDTH		320
-#define TFT_HEIGHT		240
-#define GRID_WIDTH		300
-#define GRID_HEIGHT		210
+#define TFT_WIDTH		  ((uint16_t)320)
+#define TFT_HEIGHT		((uint16_t)240)
+#define GRID_WIDTH		((uint16_t)300)
+#define GRID_HEIGHT		((uint16_t)210)
 
 #define GRID_COLOR		0x4208
 #define ADC_MAX_VAL		4096
@@ -22,48 +22,62 @@ int8_t bitOld[GRID_WIDTH] = {0};
 // grid variables
 uint8_t hOffset = (TFT_WIDTH - GRID_WIDTH)/2;
 uint8_t vOffset = (TFT_HEIGHT - GRID_HEIGHT)/2;
-uint8_t dHeight = GRID_HEIGHT/8;
+uint8_t dHeight = GRID_HEIGHT/16;
 
 // plot variables -- modified by interface section
 // controls which section of waveform is displayed on screen
 // 0 < xCursor < (NUM_SAMPLES - GRID_WIDTH)
 int16_t xCursor;
 // controls the vertical positioning of waveform
-int16_t yCursors[4];
+int16_t yCursors[5];
 // controls which waveforms are displayed
-boolean waves[4];
+boolean waves[5];
+
 // prints waveform statistics on screen
 boolean printStats = true;
 // repaint the labels on screen in draw loop
 boolean paintLabels = false;
 
 // labels around the grid
-enum {L_timebase, L_triggerType, L_triggerEdge, L_triggerLevel, L_waves, L_window, L_vPos1, L_vPos2, L_vPos3, L_vPos4};
+enum {L_voltagerange,L_timebase, L_triggerType, L_triggerEdge, L_triggerLevel, L_waves, L_window, L_vPos1, L_vPos2, L_vPos3, L_vPos4,L_vPos5};
 uint8_t currentFocus = L_timebase;
 
+
+void setFocusLabel(uint8_t label)
+{
+  currentFocus = label;
+  repaintLabels();
+}
 
 // ------------------------
 void focusNextLabel()	{
 // ------------------------
 	currentFocus++;
 
-	if((currentFocus == L_vPos1) && !waves[0])
+  //TODO limit this according to number of channels... 
+	if((currentFocus == L_vPos1) && !waves[A1])
 		currentFocus++;
 
-	if((currentFocus == L_vPos2) && !waves[1])
+	if((currentFocus == L_vPos2) && !waves[A2])
 		currentFocus++;
 
-	if((currentFocus == L_vPos3) && !waves[2])
+	if((currentFocus == L_vPos3) && !waves[D1])
+		currentFocus++;
+   
+	if((currentFocus == L_vPos4) && !waves[D2])
 		currentFocus++;
 
-	if((currentFocus == L_vPos4) && !waves[3])
-		currentFocus++;
+  if((currentFocus == L_vPos5) && !waves[D3])
+    currentFocus++;
 
-	if(currentFocus > L_vPos4)
+#ifdef DSO_150
+  if(currentFocus > L_vPos5)
+    currentFocus = L_voltagerange;
+#else    
+	if(currentFocus > L_vPos5)
 		currentFocus = L_timebase;
+#endif    
 }
-
-
 
 
 // ------------------------
@@ -73,12 +87,16 @@ void repaintLabels()	{
 }
 
 
-
 // ------------------------
 void initDisplay()	{
 // ------------------------
-	tft.reset();
+  tft.reset();
+
+  //Contrary to the Schematic for the DSO-150 that lists a 
+  //S95417 display module which should contain according to the 
+  //datasheet an ILI9325 IT IS ACTUALLY A ILI9341 
 	tft.begin(0x9341);
+
 	tft.setRotation(LANDSCAPE);
 	tft.fillScreen(ILI9341_BLACK);
 	banner();
@@ -88,8 +106,6 @@ void initDisplay()	{
 	// and paint o-scope
 	clearWaves();
 }
-
-
 
 
 // ------------------------
@@ -120,8 +136,6 @@ void drawWaves()	{
 }
 
 
-
-
 // ------------------------
 void clearWaves()	{
 // ------------------------
@@ -131,7 +145,6 @@ void clearWaves()	{
 	drawGrid();
 	drawLabels();
 }
-
 
 
 boolean cDisplayed = false;
@@ -148,7 +161,6 @@ void indicateCapturing()	{
 }
 
 
-
 // ------------------------
 void indicateCapturingDone()	{
 // ------------------------
@@ -159,35 +171,33 @@ void indicateCapturingDone()	{
 }
 
 
-
-
-
 // local operations below
 
 
-
-
-// 0, 1 Analog channels. 2, 3 digital channels
+// 0, 1 Analog channels. 2, 3 ,4 digital channels
 // ------------------------
 void clearNDrawSignals()	{
 // ------------------------
-	static boolean wavesOld[4] = {false,};
-	static int16_t yCursorsOld[4];
+	static boolean wavesOld[5] = {false,};
+	static int16_t yCursorsOld[5];
 	
 	// snap the values to prevent interrupt from changing mid-draw
 	int16_t xCursorSnap = xCursor;
 	int16_t zeroVoltageA1Snap = zeroVoltageA1;
 	int16_t zeroVoltageA2Snap = zeroVoltageA2;
-	int16_t yCursorsSnap[4];
-	boolean wavesSnap[4];
-	yCursorsSnap[0] = yCursors[0];
-	yCursorsSnap[1] = yCursors[1];
-	yCursorsSnap[2] = yCursors[2];
-	yCursorsSnap[3] = yCursors[3];
-	wavesSnap[0] = waves[0];
-	wavesSnap[1] = waves[1];
-	wavesSnap[2] = waves[2];
-	wavesSnap[3] = waves[3];
+	int16_t yCursorsSnap[5];
+	boolean wavesSnap[5];
+
+	yCursorsSnap[A1] = yCursors[A1];
+	yCursorsSnap[A2] = yCursors[A2];
+	yCursorsSnap[D1] = yCursors[D1];
+	yCursorsSnap[D2] = yCursors[D2];
+  yCursorsSnap[D3] = yCursors[D3];
+	wavesSnap[A1] = waves[A1];
+	wavesSnap[A2] = waves[A2];
+	wavesSnap[D1] = waves[D1];
+	wavesSnap[D2] = waves[D2];
+  wavesSnap[D3] = waves[D3];
 
 	// draw the GRID_WIDTH section of the waveform from xCursorSnap
 	int16_t val1, val2;
@@ -200,7 +210,8 @@ void clearNDrawSignals()	{
 		j = j - NUM_SAMPLES;
 	
 	// go through all the data points
-	for(int i = 1, jn = j + 1; i < GRID_WIDTH - 1; j++, i++, jn++)	{
+	for(int i = 1, jn = j + 1; i < GRID_WIDTH - 1; j++, i++, jn++)	
+	{
 		if(jn == NUM_SAMPLES)
 			jn = 0;
 
@@ -208,125 +219,154 @@ void clearNDrawSignals()	{
 			j = 0;
 
 		// erase old line segment
-		if(wavesOld[3])	{
-			val1 = (bitOld[i] & 0b10000000) ? dHeight : 0;
-			val2 = (bitOld[i + 1] & 0b10000000) ? dHeight : 0;
-			// clear the line segment
-			transposedPt1 = GRID_HEIGHT + vOffset + yCursorsOld[3] - val1;
-			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsOld[3] - val2;
-			plotLineSegment(transposedPt1, transposedPt2, i, ILI9341_BLACK);
-		}
+#ifdef ADD_D3   
+    if(wavesOld[D3]) {
+      val1 = (bitOld[i] & 0b10000000) ? dHeight : 0;
+      val2 = (bitOld[i + 1] & 0b10000000) ? dHeight : 0;
+      // clear the line segment
+      transposedPt1 = GRID_HEIGHT + vOffset + yCursorsOld[D3] - val1;
+      transposedPt2 = GRID_HEIGHT + vOffset + yCursorsOld[D3] - val2;
+      plotLineSegment(transposedPt1, transposedPt2, i, ILI9341_BLACK);
+    }
+#endif
 
-		if(wavesOld[2])	{
+
+		if(wavesOld[D2])	{
 			val1 = (bitOld[i] & 0b01000000) ? dHeight : 0;
 			val2 = (bitOld[i + 1] & 0b01000000) ? dHeight : 0;
 			// clear the line segment
-			transposedPt1 = GRID_HEIGHT + vOffset + yCursorsOld[2] - val1;
-			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsOld[2] - val2;
+			transposedPt1 = GRID_HEIGHT + vOffset + yCursorsOld[D2] - val1;
+			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsOld[D2] - val2;
 			plotLineSegment(transposedPt1, transposedPt2, i, ILI9341_BLACK);
 		}
-			
-		if(wavesOld[1])	{
-			val1 = (ch2Old[i] * GRID_HEIGHT)/ADC_2_GRID;
-			val2 = (ch2Old[i + 1] * GRID_HEIGHT)/ADC_2_GRID;
+		if(wavesOld[D1])	{
+			val1 = (bitOld[i] & 0b00100000) ? dHeight : 0;
+			val2 = (bitOld[i + 1] & 0b00100000) ? dHeight : 0;
 			// clear the line segment
-			transposedPt1 = GRID_HEIGHT + vOffset + yCursorsOld[1] - val1;
-			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsOld[1] - val2;
+			transposedPt1 = GRID_HEIGHT + vOffset + yCursorsOld[D1] - val1;
+			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsOld[D1] - val2;
 			plotLineSegment(transposedPt1, transposedPt2, i, ILI9341_BLACK);
 		}
 
-		if(wavesOld[0])	{
+#ifdef ADD_AN2 
+		if(wavesOld[A2])	{
+			val1 = (ch2Old[i] * GRID_HEIGHT)/ADC_2_GRID;
+			val2 = (ch2Old[i + 1] * GRID_HEIGHT)/ADC_2_GRID;
+			// clear the line segment
+			transposedPt1 = GRID_HEIGHT + vOffset + yCursorsOld[A2] - val1;
+			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsOld[A2] - val2;
+			plotLineSegment(transposedPt1, transposedPt2, i, ILI9341_BLACK);
+		}
+#endif
+
+		if(wavesOld[A1])	{
 			val1 = (ch1Old[i] * GRID_HEIGHT)/ADC_2_GRID;
 			val2 = (ch1Old[i + 1] * GRID_HEIGHT)/ADC_2_GRID;
 			// clear the line segment
-			transposedPt1 = GRID_HEIGHT + vOffset + yCursorsOld[0] - val1;
-			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsOld[0] - val2;
+			transposedPt1 = GRID_HEIGHT + vOffset + yCursorsOld[A1] - val1;
+			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsOld[A1] - val2;
 			plotLineSegment(transposedPt1, transposedPt2, i, ILI9341_BLACK);
 		}
 			
 		// draw new segments
-		if(wavesSnap[3])	{
-			shiftedVal = bitStore[j] >> 7;
+#ifdef ADD_D3  
+		if(wavesSnap[D3])	{
+			shiftedVal = bitStore[j] >> 8;
 			val1 = (shiftedVal & 0b10000000) ? dHeight : 0;
-			val2 = ((bitStore[jn] >> 7) & 0b10000000) ? dHeight : 0;
-			bitOld[i] &= 0b01000000;
+			val2 = ((bitStore[jn] >> 8) & 0b10000000) ? dHeight : 0;
+			bitOld[i] &= 0b01111111;
 			bitOld[i] |= shiftedVal & 0b10000000;
 			// draw the line segment
-			transposedPt1 = GRID_HEIGHT + vOffset + yCursorsSnap[3] - val1;
-			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsSnap[3] - val2;
-			plotLineSegment(transposedPt1, transposedPt2, i, DG_SIGNAL2);
+			transposedPt1 = GRID_HEIGHT + vOffset + yCursorsSnap[D3] - val1;
+			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsSnap[D3] - val2;
+			plotLineSegment(transposedPt1, transposedPt2, i, DG_SIGNAL3);
 		}
-		
-		if(wavesSnap[2])	{
-			shiftedVal = bitStore[j] >> 7;
-			val1 = (shiftedVal & 0b01000000) ? dHeight : 0;
-			val2 = ((bitStore[jn] >> 7) & 0b01000000) ? dHeight : 0;
-			bitOld[i] &= 0b10000000;
-			bitOld[i] |= shiftedVal & 0b01000000;
+#endif
+
+    if(wavesSnap[D2])  {
+      shiftedVal = bitStore[j] >> 8;
+      val1 = (shiftedVal & 0b01000000) ? dHeight : 0;
+      val2 = ((bitStore[jn] >> 8) & 0b01000000) ? dHeight : 0;
+      bitOld[i] &= 0b10111111;
+      bitOld[i] |= shiftedVal & 0b01000000;
+      // draw the line segment
+      transposedPt1 = GRID_HEIGHT + vOffset + yCursorsSnap[D2] - val1;
+      transposedPt2 = GRID_HEIGHT + vOffset + yCursorsSnap[D2] - val2;
+      plotLineSegment(transposedPt1, transposedPt2, i, DG_SIGNAL2);
+    }    
+		if(wavesSnap[D1])	{
+			shiftedVal = bitStore[j] >> 8;
+			val1 = (shiftedVal & 0b00100000) ? dHeight : 0;
+			val2 = ((bitStore[jn] >> 8) & 0b00100000) ? dHeight : 0;
+			bitOld[i] &= 0b11011111;
+			bitOld[i] |= shiftedVal & 0b00100000;
 			// draw the line segment
-			transposedPt1 = GRID_HEIGHT + vOffset + yCursorsSnap[2] - val1;
-			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsSnap[2] - val2;
+			transposedPt1 = GRID_HEIGHT + vOffset + yCursorsSnap[D1] - val1;
+			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsSnap[D1] - val2;
 			plotLineSegment(transposedPt1, transposedPt2, i, DG_SIGNAL1);
 		}
 
-		if(wavesSnap[1])	{
+#ifdef ADD_AN2
+		if(wavesSnap[A2])	{
 			val1 = ((ch2Capture[j] - zeroVoltageA2Snap) * GRID_HEIGHT)/ADC_2_GRID;
 			val2 = ((ch2Capture[jn] - zeroVoltageA2Snap) * GRID_HEIGHT)/ADC_2_GRID;
 			ch2Old[i] = ch2Capture[j] - zeroVoltageA2Snap;
 			// draw the line segment
-			transposedPt1 = GRID_HEIGHT + vOffset + yCursorsSnap[1] - val1;
-			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsSnap[1] - val2;
+			transposedPt1 = GRID_HEIGHT + vOffset + yCursorsSnap[A2] - val1;
+			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsSnap[A2] - val2;
 			plotLineSegment(transposedPt1, transposedPt2, i, AN_SIGNAL2);
 		}
+#endif
 		
-		if(wavesSnap[0])	{
+		if(wavesSnap[A1])	{
 			val1 = ((ch1Capture[j] - zeroVoltageA1Snap) * GRID_HEIGHT)/ADC_2_GRID;
 			val2 = ((ch1Capture[jn] - zeroVoltageA1Snap) * GRID_HEIGHT)/ADC_2_GRID;
 			ch1Old[i] = ch1Capture[j] - zeroVoltageA1Snap;
 			// draw the line segment
-			transposedPt1 = GRID_HEIGHT + vOffset + yCursorsSnap[0] - val1;
-			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsSnap[0] - val2;
+			transposedPt1 = GRID_HEIGHT + vOffset + yCursorsSnap[A1] - val1;
+			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsSnap[A1] - val2;
 			plotLineSegment(transposedPt1, transposedPt2, i, AN_SIGNAL1);
 		}
-
 	}
 	
-	
 	// store the drawn parameters to old storage
-	wavesOld[0] = wavesSnap[0];
-	wavesOld[1] = wavesSnap[1];
-	wavesOld[2] = wavesSnap[2];
-	wavesOld[3] = wavesSnap[3];
-	
-	yCursorsOld[0] = yCursorsSnap[0];
-	yCursorsOld[1] = yCursorsSnap[1];
-	yCursorsOld[2] = yCursorsSnap[2];
-	yCursorsOld[3] = yCursorsSnap[3];
-
+	wavesOld[A1] = wavesSnap[A1];
+	wavesOld[A2] = wavesSnap[A2];
+	wavesOld[D1] = wavesSnap[D1];
+	wavesOld[D2] = wavesSnap[D2];
+  wavesOld[D3] = wavesSnap[D3];
+  
+	yCursorsOld[A1] = yCursorsSnap[A1];
+	yCursorsOld[A2] = yCursorsSnap[A2];
+	yCursorsOld[D1] = yCursorsSnap[D1];
+	yCursorsOld[D2] = yCursorsSnap[D2];
+  yCursorsOld[D3] = yCursorsSnap[D3];
 }
-
-
 
 
 // ------------------------
 inline void plotLineSegment(int16_t transposedPt1, int16_t transposedPt2,  int index, uint16_t color)	{
 // ------------------------
 	// range checks
-	if(transposedPt1 > (GRID_HEIGHT + vOffset))
-		transposedPt1 = GRID_HEIGHT + vOffset;
-	if(transposedPt1 < vOffset)
-		transposedPt1 = vOffset;
-	if(transposedPt2 > (GRID_HEIGHT + vOffset))
-		transposedPt2 = GRID_HEIGHT + vOffset;
-	if(transposedPt2 < vOffset)
-		transposedPt2 = vOffset;
 
-	// draw the line segments
-	tft.drawLine(index + hOffset, transposedPt1, index + hOffset, transposedPt2, color);
+  
+	if(transposedPt1 > (GRID_HEIGHT + vOffset-2))
+		transposedPt1 = GRID_HEIGHT + vOffset-1;
+	if(transposedPt1 < vOffset+1)
+		transposedPt1 = vOffset+1;
+	if(transposedPt2 > (GRID_HEIGHT + vOffset-2))
+		transposedPt2 = GRID_HEIGHT + vOffset-2;
+	if(transposedPt2 < vOffset+1)
+		transposedPt2 = vOffset+1;
+  
+  // draw the line segments
+  //Note.. If Pt1 < Pt2 here it leads to strange drawing artifacts where the 
+  //verticval line sign seems to be flipped... Somewhere a bug in the graphics library...
+  if (transposedPt1<transposedPt2)
+    tft.drawLine(index + hOffset, transposedPt1, index + hOffset, transposedPt2, color);
+  else  
+	  tft.drawLine(index + hOffset, transposedPt2, index + hOffset, transposedPt1, color);
 }
-
-
-
 
 
 // ------------------------
@@ -337,8 +377,6 @@ void drawVCursor(int channel, uint16_t color, boolean highlight)	{
 	if(highlight)
 		tft.drawRect(0, cPos - 7, hOffset, 14, ILI9341_WHITE);
 }
-
-
 
 
 // ------------------------
@@ -363,14 +401,12 @@ void drawGrid()	{
 }
 
 
-
-
 // ------------------------
 void drawLabels()	{
 // ------------------------
 	// draw the static labels around the grid
 
-	// erase top bar
+	// erase top/bottom bar
 	tft.fillRect(hOffset, 0, TFT_WIDTH, vOffset, ILI9341_BLACK);
 	tft.fillRect(hOffset + GRID_WIDTH, 0, hOffset, TFT_HEIGHT, ILI9341_BLACK);
 
@@ -389,7 +425,7 @@ void drawLabels()	{
 
 	// draw x-window at top, range = 200px
 	// -----------------
-	int sampleSizePx = 160;
+	int sampleSizePx = 120;
 	float lOffset = (TFT_WIDTH - sampleSizePx)/2;
 	tft.drawFastVLine(lOffset, 3, vOffset - 6, ILI9341_GREEN);
 	tft.drawFastVLine(lOffset + sampleSizePx, 3, vOffset - 6, ILI9341_GREEN);
@@ -406,48 +442,57 @@ void drawLabels()	{
 	
 	// print active wave indicators
 	// -----------------
-	tft.setCursor(250, 4);
-	if(waves[0])	{
+	tft.setCursor(230, 4);
+	if(waves[A1])	{
 		tft.setTextColor(AN_SIGNAL1, ILI9341_BLACK);
 		tft.print("A1 ");
 	}
 	else
 		tft.print("   ");
 
-	if(waves[1])	{
+	if(waves[A2])	{
 		tft.setTextColor(AN_SIGNAL2, ILI9341_BLACK);
 		tft.print("A2 ");
 	}
 	else
 		tft.print("   ");
 
-	if(waves[2])	{
+	if(waves[D1])	{
 		tft.setTextColor(DG_SIGNAL1, ILI9341_BLACK);
 		tft.print("D1 ");
 	}
 	else
 		tft.print("   ");
 
-	if(waves[3])	{
+	if(waves[D2])	{
 		tft.setTextColor(DG_SIGNAL2, ILI9341_BLACK);
 		tft.print("D2");
 	}
+  else
+    tft.print("   ");
 
-	if(currentFocus == L_waves)
-		tft.drawRect(247, 0, 72, vOffset, ILI9341_WHITE);
+  if(waves[D3]) {
+    tft.setTextColor(DG_SIGNAL3, ILI9341_BLACK);
+    tft.print("D3");
+  }
+  
+  if(currentFocus == L_waves)
+		tft.drawRect(227, 0, 92, vOffset, ILI9341_WHITE);
 
 	// erase left side of grid
 	tft.fillRect(0, 0, hOffset, TFT_HEIGHT, ILI9341_BLACK);
 	
 	// draw new wave cursors
 	// -----------------
-	if(waves[3])
+  if(waves[D3])
+    drawVCursor(3, DG_SIGNAL3, (currentFocus == L_vPos5));
+	if(waves[D2])
 		drawVCursor(3, DG_SIGNAL2, (currentFocus == L_vPos4));
-	if(waves[2])
+	if(waves[D1])
 		drawVCursor(2, DG_SIGNAL1, (currentFocus == L_vPos3));
-	if(waves[1])
+	if(waves[A2])
 		drawVCursor(1, AN_SIGNAL2, (currentFocus == L_vPos2));
-	if(waves[0])
+	if(waves[A1])
 		drawVCursor(0, AN_SIGNAL1, (currentFocus == L_vPos1));
 
 	// erase bottom bar
@@ -458,6 +503,12 @@ void drawLabels()	{
 	tft.setTextColor(ILI9341_YELLOW, ILI9341_BLACK);
 	tft.setCursor(hOffset + 10, GRID_HEIGHT + vOffset + 4);
 	tft.print(rngNames[rangePos]);
+  #ifdef DSO_150
+  if(currentFocus == L_voltagerange)
+    tft.drawRect(hOffset + 5, GRID_HEIGHT + vOffset, 40, vOffset, ILI9341_WHITE);
+  #endif
+    
+  //Draw coupling
 	tft.setCursor(hOffset + 50, GRID_HEIGHT + vOffset + 4);
 	tft.print(cplNames[couplingPos]);
 	
@@ -599,9 +650,6 @@ void drawStats()	{
 	
 }
 
-
-
-
 // ------------------------
 void calculateStats()	{
 // ------------------------
@@ -679,9 +727,6 @@ void calculateStats()	{
 	wStats.Vminf = Vmin * adcMultiplier[rangePos];
 }
 
-
-
-
 // ------------------------
 void drawVoltage(float volt, int y, boolean mvRange)	{
 // ------------------------
@@ -719,11 +764,7 @@ void drawVoltage(float volt, int y, boolean mvRange)	{
 		tft.setCursor(x, y);
 		tft.print(volt);
 	}
-
 }
-
-
-
 
 
 // ------------------------
@@ -733,36 +774,51 @@ void clearStats()	{
 }
 
 
-
 // ------------------------
-void banner()	{
+void banner() {
 // ------------------------
-	tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
-	tft.setTextSize(2);
-	tft.setCursor(110, 30);
-	tft.print("DLO-138");
-	tft.drawRect(100, 25, 100, 25, ILI9341_WHITE);
+tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
+tft.setTextSize(2);
+tft.setCursor(110, 20);
+tft.print(FIRMWARE_TARGET);
+tft.drawRect(100, 15, 100, 25, ILI9341_WHITE);
 
-	tft.setTextSize(1);
-	tft.setCursor(30, 70);
-	tft.print("Dual Channel O-Scope with logic analyzer");
+tft.setTextSize(1);
+tft.setCursor(30, 60);
+tft.print("Digital Stroage Oscilloscope");
 
-	tft.setCursor(30, 95);
-	tft.print("Usage: ");
-	tft.setTextColor(ILI9341_YELLOW, ILI9341_BLACK);
-	tft.print("https://github.com/ardyesp/DLO-138");
+tft.setTextSize(1);
+tft.setCursor(30, 90);
+tft.print("Analog Channels: ");
+tft.print(ANALOG_CHANNEL_COUNT);
 
-	tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
-	tft.setCursor(30, 120);
-	tft.print("DSO-138 hardware by JYE-Tech");
-	
-	tft.setCursor(30, 145);
-	tft.print("Firmware version: ");
-	tft.print(FIRMWARE_VERSION);
+if (DIGITAL_CHANNEL_COUNT > 0)
+{
+tft.setCursor(30, 110);
+tft.print("Digital Channels: ");
+tft.print(DIGITAL_CHANNEL_COUNT); 
+}
 
-	tft.setTextSize(1);
-	tft.setCursor(30, 200);
-	tft.print("GNU GENERAL PUBLIC LICENSE Version 3");
+tft.setCursor(30, 130);
+tft.print("Storage Depth:");
+tft.print(NUM_SAMPLES);
+
+tft.setCursor(30, 150);
+tft.print("Usage: ");
+tft.setTextColor(ILI9341_YELLOW, ILI9341_BLACK);
+tft.print("https://github.com/ardyesp/DLO-138");
+
+tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
+tft.setCursor(30, 170);
+tft.print(FIRMWARE_INFO);
+
+tft.setCursor(30, 190);
+tft.print("Firmware version: ");
+tft.print(FIRMWARE_VERSION);
+
+tft.setTextSize(1);
+tft.setCursor(30, 210);
+tft.print("GNU GENERAL PUBLIC LICENSE Version 3");
 }
 
 

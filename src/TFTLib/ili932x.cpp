@@ -10,6 +10,8 @@
 
 #include "ili932x.h"
 
+//#define DEBUG
+
 static uint8_t rotation;
 
 /*****************************************************************************/
@@ -71,8 +73,10 @@ static const uint16_t ILI932x_regValues[] = {
 /*****************************************************************************/
 void ili932x_begin(void)
 {
-  //Serial.println("initializing ILI932x...");
-    uint16_t a, d;
+#ifdef DEBUG
+   Serial1.println("initializing ILI932x...");
+#endif
+   uint16_t a, d;
 	uint8_t i = 0;
 
     while(i < sizeof(ILI932x_regValues) / sizeof(uint16_t)) {
@@ -80,7 +84,12 @@ void ili932x_begin(void)
       d = pgm_read_word(&ILI932x_regValues[i++]);
       if(a == TFTLCD_DELAY) delay(d);
       else {
-		  //Serial.print("writing to 0x"); Serial.print(a,HEX); Serial.print(" value: 0x"); Serial.println(d,HEX);
+#ifdef DEBUG	  
+		  Serial1.print("writing to 0x"); 
+		  Serial1.print(a,HEX); 
+		  Serial1.print(" value: 0x"); 
+		  Serial1.println(d,HEX);
+#endif		  
 		  writeRegister16(a, d);
 	  }
     }
@@ -140,8 +149,19 @@ void ili932x_setAddrWindow(int x1, int y1, int x2, int y2)
       y  = y2;
       break;
     }
-	//Serial.print("setAddrWindow: rot: "); Serial.print(rotation); Serial.print(", x1: "); Serial.print(x1); Serial.print(", y1: "); Serial.print(y1); Serial.print(", x2: "); Serial.print(x2); Serial.print(", y2: "); Serial.println(y2);
-    writeRegister16(ILI932X_HOR_START_AD, x1); // Set window address
+	#ifdef DEBUG
+	Serial1.print("setAddrWindow: rot: "); 
+	Serial1.print(rotation); 
+	Serial1.print(", x1: "); 
+	Serial1.print(x1); 
+	Serial1.print(", y1: "); 
+	Serial1.print(y1); 
+	Serial1.print(", x2: "); 
+	Serial1.print(x2); 
+	Serial1.print(", y2: "); 
+	Serial1.println(y2);
+    #endif
+	writeRegister16(ILI932X_HOR_START_AD, x1); // Set window address
     writeRegister16(ILI932X_HOR_END_AD, x2);
     writeRegister16(ILI932X_VER_START_AD, y1);
     writeRegister16(ILI932X_VER_END_AD, y2);

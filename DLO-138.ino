@@ -4,22 +4,29 @@
 #include "global.h"
 #include "variables.h"
 
-
-#define FIRMWARE_VERSION	"1.0"
-
 // ------------------------
 void setup()	{
 // ------------------------
 	DBG_INIT(SERIAL_BAUD_RATE);
-	DBG_PRINT("Dual channel O Scope with two logic channels, ver: ");
+	DBG_PRINT("DSO Firmware ver: ");
 	DBG_PRINTLN(FIRMWARE_VERSION);
+
+  //Disable JTAG Debug Pins so PB can be used for display
+  afio_cfg_debug_ports(AFIO_DEBUG_SW_ONLY);
 
 	// set digital and analog stuff
 	initIO();
-	
+
+
+
 	// load scope config or factory reset to defaults
+#ifdef DSO_150
+  pinMode(BTN4,INPUT);
+#endif   
 	loadConfig(digitalRead(BTN4) == LOW);
-	
+#ifdef DSO_150 
+  pinMode(BTN4,OUTPUT);
+#endif  
 	// init the IL9341 display
 	initDisplay();
 }
