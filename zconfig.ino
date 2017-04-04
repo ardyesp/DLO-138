@@ -74,8 +74,14 @@ void loadConfig(boolean reset)	{
 
   data = EEPROM.read(PARAM_VRANGE);
   setVoltageRange(data);
-  
 	
+  data = EEPROM.read(PARAM_DSIZE);
+  dsize[0] = data;
+  data = EEPROM.read(PARAM_DSIZE + 1);
+  dsize[1] = data;
+  data = EEPROM.read(PARAM_DSIZE + 2);
+  dsize[2] = data;
+  
 	DBG_PRINTLN("Loaded config:");
 	DBG_PRINT("Timebase: ");DBG_PRINTLN(currentTimeBase);
   DBG_PRINT("Voltage Range: ");DBG_PRINTLN(currentVoltageRange);
@@ -109,6 +115,13 @@ void loadConfig(boolean reset)	{
 	DBG_PRINT("Print Stats: ");DBG_PRINTLN(printStats);
 	DBG_PRINT("Wave1 Zero: ");DBG_PRINTLN(zeroVoltageA1);
 	DBG_PRINT("Wave2 Zero: ");DBG_PRINTLN(zeroVoltageA2);
+
+  DBG_PRINT("Digital Waveform Size: ");
+  DBG_PRINT(dsize[0]);
+  DBG_PRINT(", ");
+  DBG_PRINTLN(dsize[1]);
+  DBG_PRINT(", ");
+  DBG_PRINTLN(dsize[2]); 
 	
 	// check if EEPROM left enough space, or else invoke formatSaveConfig
 }
@@ -145,6 +158,11 @@ void loadDefaults()	{
 	
 	zeroVoltageA1 = 1985;
 	zeroVoltageA2 = 1985;
+
+  dsize[0]=2;
+  dsize[1]=2;
+  dsize[2]=2;
+
 }
 
 // ------------------------
@@ -176,7 +194,11 @@ void formatSaveConfig()	{
 	
 	saveParameter(PARAM_ZERO1, zeroVoltageA1);
 	saveParameter(PARAM_ZERO2, zeroVoltageA2);
-saveParameter(PARAM_VRANGE, currentVoltageRange);  
+  saveParameter(PARAM_VRANGE, currentVoltageRange);  
+
+  saveParameter(PARAM_DSIZE, dsize[0]);
+  saveParameter(PARAM_DSIZE + 1, dsize[1]);
+  saveParameter(PARAM_DSIZE + 2, dsize[2]);
 }
 
 // ------------------------

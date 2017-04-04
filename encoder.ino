@@ -22,6 +22,7 @@ int getEncoderSteps()	{
 
 	encoderPrevVal = encoderVal - remainder;
 	return numSteps;
+
 }
 
 
@@ -30,6 +31,7 @@ int getEncoderSteps()	{
 // ISR
 void readEncoderISR()	{
 // ------------------------
+
 	static byte lastPos = 0b00;
 
 	byte aNow = digitalRead(ENCODER_A);
@@ -58,7 +60,7 @@ void readEncoderISR()	{
 
 	// convert the encoder reading into rounded steps
 	int steps = getEncoderSteps();
-
+  
 	if(steps != 0)	{
 		// take action
 		encoderChanged(steps);
@@ -111,6 +113,7 @@ boolean   pollControlSwitches(void)
 //Set Lines to Read
 setReadDir();
 
+/*
 //Read Encoder
   byte aNow = digitalRead(ENCODER_A);
   byte bNow = digitalRead(ENCODER_B);
@@ -147,7 +150,7 @@ setReadDir();
     encoderChanged(steps);
     change=true;
   }
-
+*/
 //Read Buttons
 //------------
 
@@ -167,7 +170,7 @@ setReadDir();
     if(pressed[ii] && (digitalRead(pin[ii]) == HIGH))  
     {
       // debounce
-      if(millis() - pressedTime[ii] < 5)
+      if(millis() - pressedTime[ii] < BTN_DEBOUNCE_TIME)
         continue;
       
       pressed[ii] = false;
@@ -203,6 +206,7 @@ setReadDir();
 
 
   //Handle Buttons...
+
   if (pos[4] == 1)
   {      // toggle hold
     hold = !hold;

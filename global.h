@@ -142,20 +142,21 @@
 #define PARAM_TRIGDIR	3
 #define PARAM_XCURSOR	4
 #define PARAM_YCURSOR	5	// 5,6,7,8,9 - 5 params
-#define PARAM_WAVES		10	// 9,10,11,12,13 - 5 params
+#define PARAM_WAVES		10	// 10,11,12,13,14 - 5 params
 #define PARAM_TLEVEL	15
 #define PARAM_STATS		16
 #define PARAM_ZERO1		17
 #define PARAM_ZERO2		18
 #define PARAM_VRANGE  19
+#define PARAM_DSIZE   20  //20,21,22 - 3 params
 
 #define LED_ON	digitalWrite(BOARD_LED, LOW)
 #define LED_OFF	digitalWrite(BOARD_LED, HIGH)
 
 // number of pixels waveform moves left/right or up/down
-#define XCURSOR_STEP	10
+#define XCURSOR_STEP	25
 #define YCURSOR_STEP	5
-#define XCURSOR_STEP_COARSE  25
+#define XCURSOR_STEP_COARSE  75
 #define YCURSOR_STEP_COARSE  15
 
 #define BTN_DEBOUNCE_TIME	50

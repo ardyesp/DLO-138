@@ -25,13 +25,13 @@ void btn4ISR()	{
 	
 	if(pressed && (digitalRead(BTN4) == HIGH))	{
 		// debounce
-		if(millis() - pressedTime < 5)
+		if(millis() - pressedTime < BTN_DEBOUNCE_TIME)
 			return;
 		
 		pressed = false;
 		
 		// is it a short press
-		if(millis() - pressedTime < 1000)	{
+		if(millis() - pressedTime < BTN_LONG_PRESS)	{
 			// toggle hold
 			hold = !hold;
 			repaintLabels();
@@ -96,13 +96,13 @@ void resetParam()	{
 			changeYCursor(A2, -GRID_HEIGHT/2 - 1);
 			break;
 		case L_vPos3:
-			changeYCursor(D1, -GRID_HEIGHT/2 - 1);
+      changeDSize(D1);
 			break;
 		case L_vPos4:
-			changeYCursor(D2, -GRID_HEIGHT/2 - 1);
+      changeDSize(D2);
 			break;
     case L_vPos5:
-      changeYCursor(D3, -GRID_HEIGHT/2 - 1);
+      changeDSize(D3);
       break;     
 		default:
 			// toggle stats printing
@@ -118,6 +118,18 @@ void resetParam()	{
 	if(triggerType != TRIGGER_AUTO)
 		// break the sampling loop
 		keepSampling = false;
+}
+
+void changeDSize(uint8_t wave)
+{
+  dsize[wave-2]++;
+  if (dsize[wave-2] > 3)
+    dsize[wave-2] = 1;
+
+  saveParameter(PARAM_DSIZE+wave-2, dsize[wave-2]);  
+
+  clearWaves();
+  drawWaves();
 }
 
 
@@ -241,30 +253,29 @@ void incrementWaves()	{
   if(waves[A2]) {
     return;
   }
-  else if(waves[A1])  {
-    waves[D1] = true;
+
+#ifdef ADD_AN2  
+  else if(waves[D3])  {
+    waves[A2] = true;
   }
-   else if(waves[D1])  {
-    waves[D2] = true;
-  }
+#endif
 #ifdef ADD_D3
-   else if(waves[D2])  {
+  else if(waves[D2]) {
     waves[D3] = true;
-  }
-#else
+  } 
+#else  
 #ifdef ADD_AN2
   else if(waves[D2]) {
     waves[A2] = true;
   } 
 #endif
 #endif
-
-#ifdef ADD_D3
-#ifdef ADD_AN2
-  else if(waves[D3]) {
-    waves[A2] = true;
-#endif
-#endif
+  else if(waves[D1]) {
+    waves[D2] = true;
+  } 
+  else {
+    waves[D1] = true;
+  }
 
   saveParameter(PARAM_WAVES + 0, waves[A1]);
   saveParameter(PARAM_WAVES + 1, waves[A2]);
