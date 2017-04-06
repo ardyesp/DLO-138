@@ -1,7 +1,7 @@
 //Global Setup
 //============
 
-#define FIRMWARE_VERSION "1.0"
+#define FIRMWARE_VERSION "1.1"
 
 //If defined build for DSO-150 instead of DSO-138
 #define DSO_150

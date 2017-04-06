@@ -35,6 +35,8 @@
 // Define pins and Output Data Registers
 /*****************************************************************************/
 
+static unsigned int intReg;
+
 #ifdef DSO_150
 
 #define TFT_DATA       GPIOB
@@ -62,8 +64,9 @@
 #define WR_IDLE      { GPIOC->regs->BSRR = TFT_WR_MASK; }
 #define CD_COMMAND   { GPIOC->regs->BRR  = TFT_RS_MASK; }
 #define CD_DATA      { GPIOC->regs->BSRR = TFT_RS_MASK; }
-#define CS_ACTIVE    { GPIOC->regs->BRR  = TFT_CS_MASK; }
-#define CS_IDLE      { GPIOC->regs->BSRR = TFT_CS_MASK; }
+//These macros enable/disable external interrupts so we can use the display together with buttons/encoder on the same lines...
+#define CS_ACTIVE    { intReg = EXTI_BASE->IMR; EXTI_BASE->IMR = 0 ; TFT_DATA->regs->CRL = 0x33333333 ;GPIOC->regs->BRR  = TFT_CS_MASK; }
+#define CS_IDLE      { GPIOC->regs->BSRR = TFT_CS_MASK;TFT_DATA->regs->CRL = 0x88888888; EXTI_BASE->IMR = intReg;}
 
 #else
 

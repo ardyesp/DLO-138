@@ -40,6 +40,11 @@ void controlLoop()	{
 		sampleWaves(false);
 		indicateCapturingDone();
 		hold = true;
+
+#ifdef DSO_150
+  pollControlSwitches();
+#endif
+    
 		// request repainting of screen labels in next draw cycle
 		repaintLabels();
 		// draw the waveform
@@ -74,6 +79,11 @@ void captureDisplayCycle(boolean wTimeOut)	{
 	indicateCapturing();
 	// blocking call - until timeout or trigger
 	sampleWaves(wTimeOut);
+
+#ifdef DSO_150
+  pollControlSwitches();
+#endif
+  
 	// draw the waveform
 	indicateCapturingDone();
 	drawWaves();

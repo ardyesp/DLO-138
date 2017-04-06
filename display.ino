@@ -1,3 +1,4 @@
+
 // TFT display constants
 #define PORTRAIT 		0
 #define LANDSCAPE 		1
@@ -90,7 +91,6 @@ void repaintLabels()	{
 // ------------------------
 void initDisplay()	{
 // ------------------------
-  disBtn();
   tft.reset();
 
   //Contrary to the Schematic for the DSO-150 that lists a 
@@ -106,7 +106,6 @@ void initDisplay()	{
 
 	// and paint o-scope
 	clearWaves();
- enBtn();
 }
 
 
@@ -137,36 +136,14 @@ void drawWaves()	{
 	}
 }
 
-void enBtn()
-{
-#ifdef DSO_150  
-  setReadDir();
-  attachInterrupt(ENCODER_A, readEncoderISR, CHANGE);
-  attachInterrupt(ENCODER_B, readEncoderISR, CHANGE);  
-#endif
-}
-
-void disBtn()
-{
-#ifdef DSO_150  
-  detachInterrupt(ENCODER_A);
-  detachInterrupt(ENCODER_B);  
-  setWriteDir();
-#endif    
-}
-
 // ------------------------
 void clearWaves()	{
 
 	// clear screen
-disBtn();
-
 	tft.fillScreen(ILI9341_BLACK);
 	// and paint o-scope
 	drawGrid();
 	drawLabels();
-
-enBtn();
 }
 
 
@@ -177,12 +154,10 @@ void indicateCapturing()	{
 // ------------------------
 	if((currentTimeBase > T2MS) || (triggerType != TRIGGER_AUTO))	{
 		cDisplayed = true;
-
-disBtn();   
+  
 		tft.setTextColor(ILI9341_PINK, ILI9341_BLACK);
 		tft.setCursor(140, 20);
 		tft.print("Sampling...");
-enBtn();
 	}
 }
 
@@ -191,10 +166,8 @@ enBtn();
 void indicateCapturingDone()	{
 // ------------------------
 	if(cDisplayed)	{
-disBtn();
 		tft.fillRect(140, 20, 66, 8, ILI9341_BLACK);
 		cDisplayed = false;
-enBtn();
 	}
 }
 
@@ -390,12 +363,10 @@ inline void plotLineSegment(int16_t transposedPt1, int16_t transposedPt2,  int i
   // draw the line segments
   //Note.. If Pt1 < Pt2 here it leads to strange drawing artifacts where the 
   //verticval line sign seems to be flipped... Somewhere a bug in the graphics library...
-disBtn();
   if (transposedPt1<transposedPt2)
     tft.drawLine(index + hOffset, transposedPt1, index + hOffset, transposedPt2, color);
   else  
 	  tft.drawLine(index + hOffset, transposedPt2, index + hOffset, transposedPt1, color);
-enBtn(); 
 }
 
 
@@ -415,7 +386,6 @@ void drawGrid()	{
 	uint8_t hPacing = GRID_WIDTH / 12;
 	uint8_t vPacing = GRID_HEIGHT / 8;
 
-disBtn();
 	for(int i = 1; i < 12; i++)
 		tft.drawFastVLine(i * hPacing + hOffset, vOffset, GRID_HEIGHT, GRID_COLOR);
 
@@ -429,7 +399,6 @@ disBtn();
 		tft.drawFastVLine(i * hPacing/5 + hOffset, vOffset + GRID_HEIGHT/2 - 4, 7, GRID_COLOR);
 
 	tft.drawRect(hOffset, vOffset, GRID_WIDTH, GRID_HEIGHT, ILI9341_WHITE);
-enBtn(); 
 }
 
 
@@ -437,7 +406,6 @@ enBtn();
 void drawLabels()	{
 // ------------------------
 	// draw the static labels around the grid
-disBtn();
 	// erase top/bottom bar
 	tft.fillRect(hOffset, 0, TFT_WIDTH, vOffset, ILI9341_BLACK);
 	tft.fillRect(hOffset + GRID_WIDTH, 0, hOffset, TFT_HEIGHT, ILI9341_BLACK);
@@ -598,13 +566,12 @@ disBtn();
 	
 	// draw trigger level on right side
 	// -----------------
-	//int cPos = GRID_HEIGHT + vOffset + yCursors[0] - getTriggerLevel()/3;
- int cPos = GRID_HEIGHT + yCursors[0] - getTriggerLevel()/3;
-    tft.fillTriangle(TFT_WIDTH, cPos - 5, TFT_WIDTH - hOffset, cPos, TFT_WIDTH, cPos + 5, AN_SIGNAL1);
+//	int cPos = GRID_HEIGHT + vOffset + yCursors[0] - getTriggerLevel()/3;
+  int cPos = GRID_HEIGHT + yCursors[0] - getTriggerLevel()/3; 
+  tft.fillTriangle(TFT_WIDTH, cPos - 5, TFT_WIDTH - hOffset, cPos, TFT_WIDTH, cPos + 5, AN_SIGNAL1);
 	if(currentFocus == L_triggerLevel)
 		tft.drawRect(GRID_WIDTH + hOffset, cPos - 7, hOffset, 14, ILI9341_WHITE);
 
-enBtn(); 
 }
 
 
@@ -622,7 +589,6 @@ void drawStats()	{
 		calculateStats();
 		clearStats = true;
 	}
-disBtn();
 	// draw stat labels
 	tft.setTextColor(ILI9341_RED, ILI9341_BLACK);
 
@@ -686,7 +652,6 @@ disBtn();
 	drawVoltage(wStats.Vavrf, 40, wStats.mvPos);
 	drawVoltage(wStats.Vmaxf - wStats.Vminf, 50, wStats.mvPos);
 	drawVoltage(wStats.Vrmsf, 60, wStats.mvPos);
-enBtn();
 }
 
 // ------------------------
@@ -765,8 +730,8 @@ void calculateStats()	{
 	wStats.Vmaxf = Vmax * adcMultiplier[rangePos];
 	wStats.Vminf = Vmin * adcMultiplier[rangePos]; 
 
-    DBG_PRINTLN(Vmax);
-    DBG_PRINTLN(Vmin);
+ //   DBG_PRINTLN(Vmax);
+ //   DBG_PRINTLN(Vmin);
 }
 
 // ------------------------
@@ -812,16 +777,13 @@ void drawVoltage(float volt, int y, boolean mvRange)	{
 // ------------------------
 void clearStats()	{
 // ------------------------
-disBtn();
 	tft.fillRect(hOffset, vOffset, GRID_WIDTH, 80, ILI9341_BLACK);
-enBtn();
 }
 
 
 // ------------------------
 void banner() {
 // ------------------------
-disBtn();
 tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
 tft.setTextSize(2);
 tft.setCursor(110, 20);
@@ -864,7 +826,6 @@ tft.print(FIRMWARE_VERSION);
 tft.setTextSize(1);
 tft.setCursor(30, 210);
 tft.print("GNU GENERAL PUBLIC LICENSE Version 3");
-enBtn();
 }
 
 

@@ -227,10 +227,6 @@ setReadDir();
   
      // request repainting of screen labels
      repaintLabels();
-  
-     // manually update display if frozen
-     if(hold)
-       drawWaves();
        
      // break the sampling loop
      if(triggerType != TRIGGER_AUTO)
@@ -241,18 +237,24 @@ setReadDir();
 
   if (pos[1] == 1)
   {      
-    setFocusLabel(L_voltagerange);
+    if (currentFocus == L_voltagerange)
+      nextVoltageRange();
+    else       
+      setFocusLabel(L_voltagerange);
     change=true;   
   }
 
   if (pos[2] == 1)
   {      
-    setFocusLabel(L_timebase);
+    if (currentFocus == L_timebase)
+      nextTimeBase();
+    else   
+      setFocusLabel(L_timebase);
     change=true;      
   }
 
   if (pos[3] == 1)
-  {      
+  {   
     setFocusLabel(L_triggerLevel);
     change=true;      
   }

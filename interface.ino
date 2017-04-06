@@ -363,6 +363,17 @@ void decrementTT()	{
 
 
 // ------------------------
+void nextTimeBase()  {
+// ------------------------
+  if(currentTimeBase == T50MS)
+   currentTimeBase = T20US;
+  else
+  currentTimeBase++;
+  setTimeBase(currentTimeBase);
+}
+
+
+// ------------------------
 void incrementTimeBase()	{
 // ------------------------
 	if(currentTimeBase == T50MS)
@@ -378,6 +389,17 @@ void decrementTimeBase()	{
 		return;
 	
 	setTimeBase(currentTimeBase - 1);
+}
+
+// ------------------------
+void nextVoltageRange()  
+// ------------------------
+{
+  if(currentVoltageRange == RNG_5mV)
+    currentVoltageRange = RNG_20V;
+  else
+    currentVoltageRange++;
+  setVoltageRange(currentVoltageRange);
 }
 
 // ------------------------

@@ -40,6 +40,9 @@ void initIO()	{
   pinMode(VSENSSEL1, OUTPUT);
   pinMode(VSENSSEL2, OUTPUT);
   pinMode(VSENSSEL3, OUTPUT);    
+
+  attachInterrupt(ENCODER_A, readEncoderISR, CHANGE);
+  attachInterrupt(ENCODER_B, readEncoderISR, CHANGE);  
  #else
 	// input button and encoder
 	pinMode(ENCODER_SW, INPUT_PULLUP);
@@ -169,12 +172,21 @@ void readInpSwitches()	{
 	delayMicroseconds(100);
 	cpl = (uint16_t) (ADC1regs->DR & ADC_DR_DATA);
 
+#ifdef DSO_150
 	if(cpl < 400)
 		couplingPos = CPL_GND;
 	else if(cpl < 2000)
-		couplingPos = CPL_AC;
-	else
 		couplingPos = CPL_DC;
+	else
+		couplingPos = CPL_AC;
+#else
+  if(cpl < 400)
+    couplingPos = CPL_GND;
+  else if(cpl < 2000)
+    couplingPos = CPL_DC;
+  else
+    couplingPos = CPL_AC;
+#endif
 
   #ifndef DSO_150
 	if(pos1 < 400)
