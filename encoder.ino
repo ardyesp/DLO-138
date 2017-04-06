@@ -22,9 +22,7 @@ int getEncoderSteps()	{
 
 	encoderPrevVal = encoderVal - remainder;
 	return numSteps;
-
 }
-
 
 
 // ------------------------
@@ -81,8 +79,6 @@ void readASwitchISR()	{
 	encoderChanged(-1);
 }
 
-
-
 // ------------------------
 // ISR
 void readBSwitchISR()	{
@@ -110,47 +106,7 @@ boolean   pollControlSwitches(void)
   static int lastEncPos = 0;
   boolean change = false;
 
-//Set Lines to Read
-setReadDir();
 
-/*
-//Read Encoder
-  byte aNow = digitalRead(ENCODER_A);
-  byte bNow = digitalRead(ENCODER_B);
-
-  byte posNow = aNow << 1 | bNow;
-
-  if((lastPos == 0b01) && (posNow == 0b11))
-    encoderVal++;
-  else if((lastPos == 0b11) && (posNow == 0b10))
-    encoderVal++;
-  else if((lastPos == 0b10) && (posNow == 0b00))
-    encoderVal++;
-  else if((lastPos == 0b00) && (posNow == 0b01))
-    encoderVal++;
-  else if((lastPos == 0b00) && (posNow == 0b10))
-    encoderVal--;
-  else if((lastPos == 0b10) && (posNow == 0b11))
-    encoderVal--;
-  else if((lastPos == 0b11) && (posNow == 0b01))
-    encoderVal--;
-  else if((lastPos == 0b01) && (posNow == 0b00))
-    encoderVal--;
-
-  lastPos = posNow;
-
-  // convert the encoder reading into rounded steps
-  //int steps = getEncoderSteps();
-  int steps = lastEncPos - encoderVal;
-  lastEncPos = encoderVal;
-  
-  if(steps != 0)  
-  {
-    // take action
-    encoderChanged(steps);
-    change=true;
-  }
-*/
 //Read Buttons
 //------------
 
@@ -189,24 +145,7 @@ setReadDir();
     }
   }
 
-//Debug only
-/*
-  DBG_PRINT("Enc:");
-  DBG_PRINT(steps);
-  DBG_PRINT(" Val:");
-  DBG_PRINT(encoderVal);
-  DBG_PRINT(" E1:");
-  DBG_PRINT(digitalRead(ENCODER_A));  
-  DBG_PRINT(" E2:");
-  DBG_PRINTLN(digitalRead(ENCODER_B));   
- */
-
-  //Restore lines to write
-  setWriteDir();
-
-
   //Handle Buttons...
-
   if (pos[4] == 1)
   {      // toggle hold
     hold = !hold;

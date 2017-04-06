@@ -311,7 +311,6 @@ void decrementWaves()	{
   saveParameter(PARAM_WAVES + 2, waves[D1]);
   saveParameter(PARAM_WAVES + 3, waves[D2]);
   saveParameter(PARAM_WAVES + 4, waves[D3]);
-	
 	repaintLabels();
 }
 

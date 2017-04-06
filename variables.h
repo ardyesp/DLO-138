@@ -34,7 +34,7 @@ const char* cplNames[] = {"GND", "AC", "DC"};
 #ifdef DSO_150
 enum {RNG_20V,RNG_10V,RNG_5V, RNG_2V, RNG_1V, RNG_0_5V, RNG_0_2V, RNG_0_1V, RNG_50mV, RNG_20mV, RNG_10mV,RNG_5mV};
 const char* rngNames[] = {"20V","10V","5V", "2V", "1V", "0.5V", "0.2V", "0.1V", "50mV", "20mV", "10mV","5mV"}; 
-const float adcMultiplier[] = {0.2,0.1,0.05, 0.02, 0.01, 0.005, 0.002, 0.001, 0.0005, 0.0002, 0.0001}; 
+const float adcMultiplier[] = {0.088,0.0589,0.0366, 0.0188, 0.0097, 0.0085, 0.0034, 0.0017, 0.0005, 0.0002, 0.0001}; 
 const unsigned char tbBitval[] = {3,5,0,7,6,4,11,13,8,15,9,12}; 
 #else
 enum {RNG_5V, RNG_2V, RNG_1V, RNG_0_5V, RNG_0_2V, RNG_0_1V, RNG_50mV, RNG_20mV, RNG_10mV};

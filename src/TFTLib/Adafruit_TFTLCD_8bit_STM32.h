@@ -65,8 +65,11 @@ static unsigned int intReg;
 #define CD_COMMAND   { GPIOC->regs->BRR  = TFT_RS_MASK; }
 #define CD_DATA      { GPIOC->regs->BSRR = TFT_RS_MASK; }
 //These macros enable/disable external interrupts so we can use the display together with buttons/encoder on the same lines...
-#define CS_ACTIVE    { intReg = EXTI_BASE->IMR; EXTI_BASE->IMR = 0 ; TFT_DATA->regs->CRL = 0x33333333 ;GPIOC->regs->BRR  = TFT_CS_MASK; }
-#define CS_IDLE      { GPIOC->regs->BSRR = TFT_CS_MASK;TFT_DATA->regs->CRL = 0x88888888; EXTI_BASE->IMR = intReg;}
+//#define CS_ACTIVE    { intReg = EXTI_BASE->IMR; Serial1.println(intReg);EXTI_BASE->IMR = 0 ; TFT_DATA->regs->CRL = 0x33333333 ;GPIOC->regs->BRR  = TFT_CS_MASK; }
+//#define CS_IDLE      { GPIOC->regs->BSRR = TFT_CS_MASK;TFT_DATA->regs->CRL = 0x88888888; EXTI_BASE->IMR = intReg;}
+//Faster but assumes we know exactly which extern IRQ's we want to disable
+#define CS_ACTIVE    { EXTI_BASE->IMR = 256 ; TFT_DATA->regs->CRL = 0x33333333 ;GPIOC->regs->BRR  = TFT_CS_MASK; }
+#define CS_IDLE      { GPIOC->regs->BSRR = TFT_CS_MASK;TFT_DATA->regs->CRL = 0x88888888; EXTI_BASE->IMR = 259;}
 
 #else
 

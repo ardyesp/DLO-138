@@ -119,8 +119,8 @@ void drawWaves()	{
 	
 	printStatsOld = printStats;
 
-	// draw the grid
-	drawGrid();
+  // draw the grid
+  drawGrid();
 	
 	// clear and draw signal traces
 	clearNDrawSignals();
@@ -268,7 +268,7 @@ void clearNDrawSignals()	{
 			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsOld[A1] - val2;
 			plotLineSegment(transposedPt1, transposedPt2, i, ILI9341_BLACK);
 		}
-			
+  	
 		// draw new segments
 #ifdef ADD_D3  
 		if(wavesSnap[D3])	{
