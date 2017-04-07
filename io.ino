@@ -208,6 +208,12 @@ void readInpSwitches()	{
 	// check if switch position changed from previous snap
 	if(couplingPos != couplingOld)	{
 		couplingOld = couplingPos;
+    //Auto Zero-Cal
+ //   if (couplingPos == CPL_GND)
+ //   {
+ //     calculateTraceZero(0);
+ //     changeYCursor(A1, -GRID_HEIGHT/2 - 1);
+ //   }
 		repaintLabels();
 	}
 

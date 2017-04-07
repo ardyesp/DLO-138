@@ -103,11 +103,20 @@ void resetParam()	{
 			break;
     case L_vPos5:
       changeDSize(D3);
-      break;     
+      break; 
+    case L_function:
+      if (currentFunction==FUNC_SERIAL)
+      {
+        dumpSamples();
+      }
+      else if (currentFunction==FUNC_LOAD)
+      {
+      }
+      else
+      {
+      }
+      break;      
 		default:
-			// toggle stats printing
-			printStats = !printStats;
-			saveParameter(PARAM_STATS, printStats);
 			break;
 	}
 	
@@ -182,7 +191,10 @@ void encoderChanged(int steps)	{
 			break;
     case L_voltagerange:
       if(steps > 0) decrementVoltageRange(); else incrementVoltageRange();
-      break;      
+      break;     
+    case L_function:
+      if(steps > 0) incrementFunc(); else decrementFunc();
+      break;       
 		case L_triggerType:
 			if(steps > 0) incrementTT(); else decrementTT();
 			break;
@@ -336,6 +348,17 @@ void setTriggerFalling()	{
 	repaintLabels();
 }
 
+// ------------------------
+void nextTT()  {
+// ------------------------
+  if(triggerType == TRIGGER_SINGLE)
+   triggerType = TRIGGER_AUTO;
+  else
+  triggerType++;
+  setTriggerType(triggerType);
+  // trigger type is not saved
+  saveParameter(PARAM_TRIGTYPE, triggerType);
+}
 
 // ------------------------
 void incrementTT()	{
@@ -358,6 +381,34 @@ void decrementTT()	{
 	// trigger type is not saved
 	saveParameter(PARAM_TRIGTYPE, triggerType);
 	repaintLabels();
+}
+
+// ------------------------
+void incrementFunc()
+// ------------------------
+{
+#ifdef DSO_150  
+  if(currentFunction == FUNC_SAVE)
+#else
+  if(currentFunction == FUNC_SERIAL)
+#endif
+    return;
+  currentFunction++;
+  // trigger type is not saved
+  saveParameter(PARAM_FUNC,currentFunction);
+  repaintLabels();
+}
+
+// ------------------------
+void decrementFunc()
+// ------------------------
+{
+  if(currentFunction == FUNC_SERIAL)
+    return;
+  currentFunction--;
+  // trigger type is not saved
+  saveParameter(PARAM_FUNC,currentFunction);
+  repaintLabels();
 }
 
 

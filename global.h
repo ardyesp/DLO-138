@@ -149,6 +149,7 @@
 #define PARAM_ZERO2		18
 #define PARAM_VRANGE  19
 #define PARAM_DSIZE   20  //20,21,22 - 3 params
+#define PARAM_FUNC    23
 
 #define LED_ON	digitalWrite(BOARD_LED, LOW)
 #define LED_OFF	digitalWrite(BOARD_LED, HIGH)

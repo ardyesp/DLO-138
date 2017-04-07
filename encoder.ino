@@ -29,7 +29,7 @@ int getEncoderSteps()	{
 // ISR
 void readEncoderISR()	{
 // ------------------------
-
+  
 	static byte lastPos = 0b00;
 
 	byte aNow = digitalRead(ENCODER_A);
@@ -58,8 +58,10 @@ void readEncoderISR()	{
 
 	// convert the encoder reading into rounded steps
 	int steps = getEncoderSteps();
-  
-	if(steps != 0)	{
+ 
+      
+	if(steps != 0)	
+ {
 		// take action
 		encoderChanged(steps);
 	}
@@ -154,9 +156,9 @@ boolean   pollControlSwitches(void)
   }
   if (pos[4] == 2)
   {
-    // long press reset parameter to default
-    resetParam();
-    change=true;    
+      // toggle stats printing
+      printStats = !printStats;
+      saveParameter(PARAM_STATS, printStats);
   }
 
   if (pos[0] == 1)
@@ -174,6 +176,13 @@ boolean   pollControlSwitches(void)
     change=true;       
   }  
 
+  if (pos[0] == 2)
+  {
+    // long press reset parameter to default
+    resetParam();
+    change=true;    
+  }
+  
   if (pos[1] == 1)
   {      
     if (currentFocus == L_voltagerange)
@@ -194,7 +203,10 @@ boolean   pollControlSwitches(void)
 
   if (pos[3] == 1)
   {   
-    setFocusLabel(L_triggerLevel);
+    if (currentFocus == L_triggerLevel)    
+      nextTT();
+    else
+      setFocusLabel(L_triggerLevel);
     change=true;      
   }
 

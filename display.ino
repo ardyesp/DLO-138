@@ -40,7 +40,7 @@ boolean printStats = true;
 boolean paintLabels = false;
 
 // labels around the grid
-enum {L_voltagerange,L_timebase, L_triggerType, L_triggerEdge, L_triggerLevel, L_waves, L_window, L_vPos1, L_vPos2, L_vPos3, L_vPos4,L_vPos5};
+enum {L_voltagerange,L_timebase,L_function, L_triggerType, L_triggerEdge, L_triggerLevel, L_waves, L_window, L_vPos1, L_vPos2, L_vPos3, L_vPos4,L_vPos5};
 uint8_t currentFocus = L_timebase;
 
 
@@ -392,11 +392,11 @@ void drawGrid()	{
 	for(int i = 1; i < 8; i++)
 		tft.drawFastHLine(hOffset, i * vPacing + vOffset, GRID_WIDTH, GRID_COLOR);
 
-	for(int i = 1; i < 5*8; i++)
-		tft.drawFastHLine(hOffset + GRID_WIDTH/2 - 3, i * vPacing/5 + vOffset, 7, GRID_COLOR);
+	for(int i = 1; i < 2*8; i++)
+		tft.drawFastHLine(hOffset + GRID_WIDTH/2 - 3, i * vPacing/2 + vOffset, 7, GRID_COLOR);
 
-	for(int i = 1; i < 5*12; i++)
-		tft.drawFastVLine(i * hPacing/5 + hOffset, vOffset + GRID_HEIGHT/2 - 4, 7, GRID_COLOR);
+	for(int i = 1; i < 2*12; i++)
+		tft.drawFastVLine(i * hPacing/2 + hOffset, vOffset + GRID_HEIGHT/2 - 4, 7, GRID_COLOR);
 
 	tft.drawRect(hOffset, vOffset, GRID_WIDTH, GRID_HEIGHT, ILI9341_WHITE);
 }
@@ -509,21 +509,29 @@ void drawLabels()	{
 	tft.print(rngNames[rangePos]);
   #ifdef DSO_150
   if(currentFocus == L_voltagerange)
-    tft.drawRect(hOffset + 5, GRID_HEIGHT + vOffset, 40, vOffset, ILI9341_WHITE);
+    tft.drawRect(hOffset + 5, GRID_HEIGHT + vOffset, 34, vOffset, ILI9341_WHITE);
   #endif
     
   //Draw coupling
-	tft.setCursor(hOffset + 50, GRID_HEIGHT + vOffset + 4);
+	tft.setCursor(hOffset + 42, GRID_HEIGHT + vOffset + 4);
 	tft.print(cplNames[couplingPos]);
 	
 	// print new timebase
 	// -----------------
 	tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
-	tft.setCursor(145, GRID_HEIGHT + vOffset + 4);
+	tft.setCursor(85, GRID_HEIGHT + vOffset + 4);
 	if(currentFocus == L_timebase)
-		tft.drawRect(140, GRID_HEIGHT + vOffset, 45, vOffset, ILI9341_WHITE);
+		tft.drawRect(80, GRID_HEIGHT + vOffset, 45, vOffset, ILI9341_WHITE);
 	tft.print(getTimebaseLabel());
 
+  // print function
+  // -----------------
+  tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
+  tft.setCursor(145, GRID_HEIGHT + vOffset + 4);
+  if(currentFocus == L_function)
+    tft.drawRect(140, GRID_HEIGHT + vOffset, 55, vOffset, ILI9341_WHITE);
+  tft.print(functionNames[currentFunction]);
+  
 	// print trigger type
 	// -----------------
 	tft.setTextColor(ILI9341_GREEN, ILI9341_BLACK);
@@ -662,21 +670,34 @@ void calculateStats()	{
 	int32_t sumSamples = 0;
 	int64_t sumSquares = 0;
 	int32_t freqSumSamples = 0;
+ int16_t val = 0;
+ int i = 1;
 
-	for(uint16_t k = 0; k < NUM_SAMPLES; k++)	{
-		int16_t val = ch1Capture[k] - zeroVoltageA1;
+  //Only look at visisble samples
+  // sampling stopped at sIndex - 1
+  int j = sIndex + xCursor;
+  if(j >= NUM_SAMPLES)
+    j = j - NUM_SAMPLES;
+  
+  // go through all the data points
+  for(i = 1; i < GRID_WIDTH - 1; j++, i++)  
+  {
+    if(j == NUM_SAMPLES)
+      j = 0;
+
+		val = ch1Capture[j] - zeroVoltageA1;
 		if(Vmax < val)
 			Vmax = val;
 		if(Vmin > val)
 			Vmin = val;
 
 		sumSamples += val;
-		freqSumSamples += ch1Capture[k];
+		freqSumSamples += ch1Capture[j];
 		sumSquares += (val * val);
 	}
 
 	// find out frequency
-	uint16_t fVavr = freqSumSamples/NUM_SAMPLES;
+	uint16_t fVavr = freqSumSamples/i;
 	boolean dnWave = (ch1Capture[sIndex] < fVavr - 10);
 	boolean firstOne = true;
 	uint16_t cHigh = 0;
@@ -686,27 +707,32 @@ void calculateStats()	{
 	uint16_t numCycles = 0;
 	uint16_t numHCycles = 0;
 
-	// sampling stopped at sIndex - 1
-	for(uint16_t sCtr = 0, k = sIndex; sCtr < NUM_SAMPLES; sCtr++, k++)	{
-		if(k == NUM_SAMPLES)
-			k = 0;
+  j = sIndex + xCursor;
+  if(j >= NUM_SAMPLES)
+    j = j - NUM_SAMPLES;
+  
+  // go through all the data points
+  for(i = 1; i < GRID_WIDTH - 1; j++, i++)  
+  {
+    if(j == NUM_SAMPLES)
+      j = 0;
 
 		// mark the points where wave transitions the average value
-		if(dnWave && (ch1Capture[k] > fVavr + 10))	{
+		if(dnWave && (ch1Capture[j] > fVavr + 10))	{
 			if(!firstOne)	{
-				sumCW += (sCtr - cHigh);
+				sumCW += (i - 1 - cHigh);
 				numCycles++;
 			}
 			else
 				firstOne = false;
 
 			dnWave = false;
-			cHigh = sCtr;
+			cHigh = i-1;
 		}
 
-		if(!dnWave && (ch1Capture[k] < fVavr - 10))	{
+		if(!dnWave && (ch1Capture[j] < fVavr - 10))	{
 			if(!firstOne)	{
-				sumPW += (sCtr - cHigh);
+				sumPW += ( i- 1 - cHigh);
 				numHCycles++;
 			}
 
@@ -725,13 +751,10 @@ void calculateStats()	{
 	wStats.pulseValid = (avgCycleWidth != 0) && (wStats.avgPW != 0) && ((Vmax - Vmin) > 20);
 	
 	wStats.mvPos = (rangePos == RNG_50mV) || (rangePos == RNG_20mV) || (rangePos == RNG_10mV) || (rangePos == RNG_5mV);
-	wStats.Vrmsf = sqrt(sumSquares/NUM_SAMPLES) * adcMultiplier[rangePos];
-	wStats.Vavrf = sumSamples/NUM_SAMPLES * adcMultiplier[rangePos];
+	wStats.Vrmsf = sqrt(sumSquares/i) * adcMultiplier[rangePos];
+	wStats.Vavrf = sumSamples/i * adcMultiplier[rangePos];
 	wStats.Vmaxf = Vmax * adcMultiplier[rangePos];
 	wStats.Vminf = Vmin * adcMultiplier[rangePos]; 
-
- //   DBG_PRINTLN(Vmax);
- //   DBG_PRINTLN(Vmin);
 }
 
 // ------------------------

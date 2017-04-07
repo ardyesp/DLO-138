@@ -31,6 +31,14 @@ struct Stats {
 enum {CPL_GND, CPL_AC, CPL_DC};
 const char* cplNames[] = {"GND", "AC", "DC"}; 
 
+enum {FUNC_SERIAL, FUNC_LOAD, FUNC_SAVE};
+#ifdef DSO_150
+const char* functionNames[] = {"SERIAL", "LOAD", "SAVE"}; 
+#else
+const char* functionNames[] = {"SERIAL"}; 
+#endif
+uint8_t currentFunction;
+
 #ifdef DSO_150
 enum {RNG_20V,RNG_10V,RNG_5V, RNG_2V, RNG_1V, RNG_0_5V, RNG_0_2V, RNG_0_1V, RNG_50mV, RNG_20mV, RNG_10mV,RNG_5mV};
 const char* rngNames[] = {"20V","10V","5V", "2V", "1V", "0.5V", "0.2V", "0.1V", "50mV", "20mV", "10mV","5mV"}; 

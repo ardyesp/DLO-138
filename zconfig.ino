@@ -81,6 +81,10 @@ void loadConfig(boolean reset)	{
   dsize[1] = data;
   data = EEPROM.read(PARAM_DSIZE + 2);
   dsize[2] = data;
+
+  data = EEPROM.read(PARAM_FUNC);
+  currentFunction = data;
+  
   
 	DBG_PRINTLN("Loaded config:");
 	DBG_PRINT("Timebase: ");DBG_PRINTLN(currentTimeBase);
@@ -123,6 +127,8 @@ void loadConfig(boolean reset)	{
   DBG_PRINT(", ");
   DBG_PRINTLN(dsize[2]); 
 	
+	DBG_PRINT("Function: ");
+  DBG_PRINTLN(currentFunction); 
 	// check if EEPROM left enough space, or else invoke formatSaveConfig
 }
 
@@ -163,6 +169,8 @@ void loadDefaults()	{
   dsize[1]=2;
   dsize[2]=2;
 
+  currentFunction = 0;
+
 }
 
 // ------------------------
@@ -199,6 +207,8 @@ void formatSaveConfig()	{
   saveParameter(PARAM_DSIZE, dsize[0]);
   saveParameter(PARAM_DSIZE + 1, dsize[1]);
   saveParameter(PARAM_DSIZE + 2, dsize[2]);
+
+  saveParameter(PARAM_FUNC,currentFunction);
 }
 
 // ------------------------

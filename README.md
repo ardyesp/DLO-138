@@ -8,10 +8,12 @@ All documentation below for DLO-138 might be obsolete....Work-In Progress
    
 Key Assignment:
 - Encoder Left/Right      -> Change Value
-- Encoder Press           -> Select Entry field
+- Encoder Press           -> Select Next Entry field
 - V/Div, Sec/Div,Trigger  -> Quick-activate entry fields
-- Pressing V/Div,Sec/Div while field is activated toggles through settings
-- Long Press on encoder button restores default for that field
+- Pressing V/Div,Sec/Div/Trigger while field is activated toggles through settings
+- Long Press on encoder button restores default for that field or triggers function
+     A1/A2 Marker -> Zero Calib
+	 Function -> Execute Function
 - OK start/stops hold mode
 - Long OK Press activates stats
 - Hold OK during power-up to reset settings
