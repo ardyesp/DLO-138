@@ -10,6 +10,7 @@ uint16_t sIndex = 0;
 uint16_t tIndex = 0;
 volatile boolean triggered = false;
 
+
 volatile boolean keepSampling = true;
 long samplingTime;
 volatile boolean hold = false;
@@ -30,6 +31,26 @@ struct Stats {
 
 enum {CPL_GND, CPL_AC, CPL_DC};
 const char* cplNames[] = {"GND", "AC", "DC"}; 
+
+enum {TRIGGER_RISING, TRIGGER_FALLING, TRIGGER_ALL};
+uint8_t triggerDir;
+
+
+enum {ZOOM_X1, ZOOM_X2, ZOOM_X4,ZOOM_X8};
+const char* zoomNames[] = {"x1", "x2", "x4","x8"}; 
+uint8_t xZoom;
+uint8_t zoomFactor;
+
+
+#ifdef ADD_D3
+enum {TRIGSRC_A1, TRIGSRC_D1, TRIGSRC_D2,TRIGSRC_D3};
+const char* trigSourceNames[] = {"A1", "D1", "D2","D3"}; 
+#else
+enum {TRIGSRC_A1, TRIGSRC_D1, TRIGSRC_D2};
+const char* trigSourceNames[] = {"A1", "D1", "D2"}; 
+#endif
+uint8_t triggerSource;
+
 
 enum {FUNC_SERIAL, FUNC_LOAD, FUNC_SAVE};
 #ifdef DSO_150

@@ -1,5 +1,9 @@
 // zconfig: since we are referencing variables defined in other files 
 
+#ifdef DSO_150_EEPROM
+#include <extEEPROM.h>
+#endif
+
 #define PREAMBLE_VALUE	2859
 
 
@@ -30,7 +34,7 @@ void loadConfig(boolean reset)	{
 	setTriggerType(TRIGGER_AUTO);
 
 	data = EEPROM.read(PARAM_TRIGDIR);
-	setTriggerRising(data == 1);
+	setTriggerDir(data);
 	
 	data = EEPROM.read(PARAM_XCURSOR);
 	xCursor = data;
@@ -73,7 +77,9 @@ void loadConfig(boolean reset)	{
 	zeroVoltageA2 = EEPROM.read(PARAM_ZERO2);
 
   data = EEPROM.read(PARAM_VRANGE);
+#ifdef DSO_150   
   setVoltageRange(data);
+#endif
 	
   data = EEPROM.read(PARAM_DSIZE);
   dsize[0] = data;
@@ -84,12 +90,18 @@ void loadConfig(boolean reset)	{
 
   data = EEPROM.read(PARAM_FUNC);
   currentFunction = data;
+
+  data = EEPROM.read(PARAM_ZOOM);
+  setZoomFactor(data);
+
+  data = EEPROM.read(PARAM_TSOURCE);
+  setTriggerSource(data);
   
   
 	DBG_PRINTLN("Loaded config:");
 	DBG_PRINT("Timebase: ");DBG_PRINTLN(currentTimeBase);
   DBG_PRINT("Voltage Range: ");DBG_PRINTLN(currentVoltageRange);
-	DBG_PRINT("Trigger Rising: ");DBG_PRINTLN(triggerRising);
+	DBG_PRINT("Trigger Dir: ");DBG_PRINTLN(triggerDir);
 	DBG_PRINT("Trigger Type: ");DBG_PRINTLN(triggerType);
 	DBG_PRINT("X Cursor Pos: ");DBG_PRINTLN(xCursor);
 	
@@ -129,6 +141,14 @@ void loadConfig(boolean reset)	{
 	
 	DBG_PRINT("Function: ");
   DBG_PRINTLN(currentFunction); 
+
+  DBG_PRINT("Zoom: ");
+  DBG_PRINTLN(zoomFactor); 
+
+  DBG_PRINT("Trigger Source: ");
+  DBG_PRINTLN(triggerSource); 
+  
+
 	// check if EEPROM left enough space, or else invoke formatSaveConfig
 }
 
@@ -138,8 +158,10 @@ void loadDefaults()	{
 	DBG_PRINTLN("Loading defaults");
 
 	setTimeBase(T30US);
+#ifdef DSO_150 
   setVoltageRange(RNG_5V);
-	setTriggerRising(true);
+#endif  
+	setTriggerDir(TRIGGER_RISING);
 	setTriggerType(TRIGGER_AUTO);
 	setTriggerLevel(0);
 	
@@ -171,6 +193,10 @@ void loadDefaults()	{
 
   currentFunction = 0;
 
+  setZoomFactor(ZOOM_X1);
+
+  triggerSource = 0;
+
 }
 
 // ------------------------
@@ -183,7 +209,7 @@ void formatSaveConfig()	{
 	saveParameter(PARAM_PREAMBLE, PREAMBLE_VALUE);
 	
 	saveParameter(PARAM_TIMEBASE, currentTimeBase);
-	saveParameter(PARAM_TRIGDIR, triggerRising);
+	saveParameter(PARAM_TRIGDIR, triggerDir);
 	saveParameter(PARAM_XCURSOR, xCursor);
 	saveParameter(PARAM_YCURSOR, yCursors[0]);
 	saveParameter(PARAM_YCURSOR + 1, yCursors[1]);
@@ -209,6 +235,8 @@ void formatSaveConfig()	{
   saveParameter(PARAM_DSIZE + 2, dsize[2]);
 
   saveParameter(PARAM_FUNC,currentFunction);
+  saveParameter(PARAM_ZOOM,zoomFactor);
+  saveParameter(PARAM_TSOURCE,triggerSource);
 }
 
 // ------------------------
@@ -220,4 +248,160 @@ void saveParameter(uint16_t param, uint16_t data)	{
 	}
 }
 
+
+#ifdef DSO_150_EEPROM
+#define OFFSET_MARKER 0
+#define LENGTH_MARKER 4
+#define OFFSET_DATA_D (OFFSET_MARKER+LENGTH_MARKER)
+#define LENGTH_DATA_D (NUM_SAMPLES * 2)
+#define OFFSET_DATA_A1 (OFFSET_DATA_D+LENGTH_DATA_D)
+#define LENGTH_DATA_A1 (NUM_SAMPLES * 2)
+#define OFFSET_DATA_A2 (OFFSET_DATA_A1+LENGTH_DATA_A1)
+#define LENGTH_DATA_A2 (NUM_SAMPLES * 2)
+
+
+#define SDA I2C_SDA
+#define SCL I2C_SCL
+
+const byte marker[LENGTH_MARKER] = {0x44,0x88,0x22,0xAA};
+extEEPROM myEEPROM(kbits_128, 1, 64);
+
+void initExtEEPROM()
+{
+  //Set I2C Pins?
+  wire.begin();
+  byte i2cStat = myEEPROM.begin();
+  if ( i2cStat != 0 ) 
+  {
+  //there was a problem
+    DBG_PRINTLN("Failed to initalize external EEPROM!");
+  }
+}
+
+void loadWaveform()
+{
+  byte checkheader[LENGTH_MARKER];
+  //Load first 4 bytes
+byte i2cStat = myEEPROM.read(OFFSET_MARKER, &checkheader, LENGTH_MARKER);
+if ( i2cStat != 0 ) {
+  //there was a problem
+  if ( i2cStat == EEPROM_ADDR_ERR) {
+      DBG_PRINTLN("Failed to read Marker. Bad Address!");
+  }
+  else {
+        DBG_PRINTLN("Failed to read Marker!");
+  }
+}
+  //compare against markers
+  if ((checkheader[0] != marker[0])||(checkheader[1] != marker[1])||(checkheader[2] != marker[2])||(checkheader[3] != marker[3]))
+  {
+      DBG_PRINTLN("Marker does not Match!");
+      return;
+  }
+ 
+  //go into hold-mode
+  hold = true;
+  
+  //load waveforms
+ i2cStat = myEEPROM.read(OFFSET_DATA_D, &bitStore[0], LENGTH_DATA_D);
+  if ( i2cStat != 0 ) {
+  //there was a problem
+  if ( i2cStat == EEPROM_ADDR_ERR) 
+  {
+        DBG_PRINTLN("Failed to read Data D. Bad Address!");
+  }
+  else 
+  {
+        DBG_PRINTLN("Failed to read Data D!");
+  }  
+
+  i2cStat = myEEPROM.write(OFFSET_DATA_A1, &ch1Capture[0], LENGTH_DATA_A1);
+  if ( i2cStat != 0 ) {
+  //there was a problem
+  if ( i2cStat == EEPROM_ADDR_ERR) 
+  {
+        DBG_PRINTLN("Failed to read Data A1. Bad Address!");
+  }
+  else 
+  {
+        DBG_PRINTLN("Failed to read Data A1!");
+  }  
+
+#ifdef ADD_AN2  
+  i2cStat = myEEPROM.read(OFFSET_DATA_A2, &ch2Capture[0], LENGTH_DATA_A2);
+  if ( i2cStat != 0 ) {
+  //there was a problem
+  if ( i2cStat == EEPROM_ADDR_ERR) 
+  {
+        DBG_PRINTLN("Failed to read Data A2. Bad Address!");
+  }
+  else 
+  {
+        DBG_PRINTLN("Failed to read Data A2!");
+  }    
+#endif
+
+  //Force display refresh
+  drawWaves();
+}
+
+
+
+void saveWaveform()
+{
+  //go into hold mode
+  hold = true;
+  
+  //Write markers
+  byte i2cStat = myEEPROM.write(OFFSET_MARKER, &marker[0], LENGTH_MARKER);
+  if ( i2cStat != 0 ) {
+  //there was a problem
+  if ( i2cStat == EEPROM_ADDR_ERR) {
+        DBG_PRINTLN("Failed to write Marker. Bad Address!");
+  }
+  else {
+        DBG_PRINTLN("Failed to write Marker!");
+  }  
+
+  //write data
+  i2cStat = myEEPROM.write(OFFSET_DATA_D, &bitStore[0], LENGTH_DATA_D);
+  if ( i2cStat != 0 ) {
+  //there was a problem
+  if ( i2cStat == EEPROM_ADDR_ERR) 
+  {
+        DBG_PRINTLN("Failed to write Data D. Bad Address!");
+  }
+  else 
+  {
+        DBG_PRINTLN("Failed to write Data D!");
+  }  
+
+  i2cStat = myEEPROM.write(OFFSET_DATA_A1, &ch1Capture[0], LENGTH_DATA_A1);
+  if ( i2cStat != 0 ) {
+  //there was a problem
+  if ( i2cStat == EEPROM_ADDR_ERR) 
+  {
+        DBG_PRINTLN("Failed to write Data A1. Bad Address!");
+  }
+  else 
+  {
+        DBG_PRINTLN("Failed to write Data A1!");
+  }  
+
+#ifdef ADD_AN2  
+  i2cStat = myEEPROM.write(OFFSET_DATA_A2, &ch2Capture[0], LENGTH_DATA_A2);
+  if ( i2cStat != 0 ) {
+  //there was a problem
+  if ( i2cStat == EEPROM_ADDR_ERR) 
+  {
+        DBG_PRINTLN("Failed to write Data A2. Bad Address!");
+  }
+  else 
+  {
+        DBG_PRINTLN("Failed to write Data A2!");
+  }    
+#endif
+}
+
+#endif
 

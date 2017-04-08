@@ -40,7 +40,7 @@ boolean printStats = true;
 boolean paintLabels = false;
 
 // labels around the grid
-enum {L_voltagerange,L_timebase,L_function, L_triggerType, L_triggerEdge, L_triggerLevel, L_waves, L_window, L_vPos1, L_vPos2, L_vPos3, L_vPos4,L_vPos5};
+enum {L_voltagerange,L_timebase,L_function, L_triggerType, L_triggerSource, L_triggerEdge, L_triggerLevel, L_waves, L_window,L_zoom, L_vPos1, L_vPos2, L_vPos3, L_vPos4,L_vPos5};
 uint8_t currentFocus = L_timebase;
 
 
@@ -161,7 +161,6 @@ void indicateCapturing()	{
 	}
 }
 
-
 // ------------------------
 void indicateCapturingDone()	{
 // ------------------------
@@ -171,9 +170,7 @@ void indicateCapturingDone()	{
 	}
 }
 
-
 // local operations below
-
 
 // 0, 1 Analog channels. 2, 3 ,4 digital channels
 // ------------------------
@@ -211,12 +208,12 @@ void clearNDrawSignals()	{
 		j = j - NUM_SAMPLES;
 	
 	// go through all the data points
-	for(int i = 1, jn = j + 1; i < GRID_WIDTH - 1; j++, i++, jn++)	
+	for(int i = 1, jn = j + xZoom; i < GRID_WIDTH - 1; j=j+xZoom, i++, jn=jn+xZoom)	
 	{
-		if(jn == NUM_SAMPLES)
+		if(jn >= NUM_SAMPLES)
 			jn = 0;
 
-		if(j == NUM_SAMPLES)
+		if(j >= NUM_SAMPLES)
 			j = 0;
 
 		// erase old line segment
@@ -240,6 +237,7 @@ void clearNDrawSignals()	{
 			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsOld[D2] - val2;
 			plotLineSegment(transposedPt1, transposedPt2, i, ILI9341_BLACK);
 		}
+   
 		if(wavesOld[D1])	{
 			val1 = (bitOld[i] & 0b00100000) ? dHeight/dsize[D1-2] : 0;
 			val2 = (bitOld[i + 1] & 0b00100000) ? dHeight/dsize[D1-2] : 0;
@@ -423,6 +421,13 @@ void drawLabels()	{
 		tft.print("RUN");
 	}
 
+ //Draw Zoom Label
+  tft.setTextColor(ILI9341_GREEN, ILI9341_BLACK);
+  tft.setCursor(65, 4);
+  if(currentFocus == L_zoom)
+    tft.drawRect(60, 0, 25, vOffset, ILI9341_WHITE);
+  tft.print(zoomNames[zoomFactor]);
+
 	// draw x-window at top, range = 200px
 	// -----------------
 	int sampleSizePx = 120;
@@ -432,8 +437,8 @@ void drawLabels()	{
 	tft.drawFastHLine(lOffset, vOffset/2, sampleSizePx, ILI9341_GREEN);
 
 	// where does xCursor lie in this range
-	float windowSize = GRID_WIDTH * sampleSizePx/NUM_SAMPLES;
-	float xCursorPx =  xCursor * sampleSizePx/NUM_SAMPLES + lOffset;
+	float windowSize = GRID_WIDTH * sampleSizePx/(NUM_SAMPLES/xZoom);
+	float xCursorPx = (xCursor/xZoom) * sampleSizePx/(NUM_SAMPLES/xZoom) + lOffset;
 	if(currentFocus == L_window)
 		tft.drawRect(xCursorPx, 4, windowSize, vOffset - 8, ILI9341_WHITE);
 	else
@@ -529,15 +534,15 @@ void drawLabels()	{
   tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
   tft.setCursor(145, GRID_HEIGHT + vOffset + 4);
   if(currentFocus == L_function)
-    tft.drawRect(140, GRID_HEIGHT + vOffset, 55, vOffset, ILI9341_WHITE);
+    tft.drawRect(140, GRID_HEIGHT + vOffset, 50, vOffset, ILI9341_WHITE);
   tft.print(functionNames[currentFunction]);
   
 	// print trigger type
 	// -----------------
 	tft.setTextColor(ILI9341_GREEN, ILI9341_BLACK);
-	tft.setCursor(230, GRID_HEIGHT + vOffset + 4);
+	tft.setCursor(220, GRID_HEIGHT + vOffset + 4);
 	if(currentFocus == L_triggerType)
-		tft.drawRect(225, GRID_HEIGHT + vOffset, 35, vOffset, ILI9341_WHITE);
+		tft.drawRect(215, GRID_HEIGHT + vOffset, 35, vOffset, ILI9341_WHITE);
 
 	switch(triggerType)	{
 		case TRIGGER_AUTO:
@@ -551,26 +556,40 @@ void drawLabels()	{
 			break;
 	}
 
+  //Draw trigger source
+  tft.setTextColor(ILI9341_GREEN, ILI9341_BLACK);
+  tft.setCursor(255, GRID_HEIGHT + vOffset + 4);
+  if(currentFocus == L_triggerSource)
+    tft.drawRect(250,  GRID_HEIGHT + vOffset, 20, vOffset, ILI9341_WHITE);
+  tft.print(trigSourceNames[triggerSource]);
+
 	// draw trigger edge
 	// -----------------
 	if(currentFocus == L_triggerEdge)
-		tft.drawRect(266, GRID_HEIGHT + vOffset, 15, vOffset + 4, ILI9341_WHITE);
+		tft.drawRect(276, GRID_HEIGHT + vOffset, 15, vOffset + 4, ILI9341_WHITE);
 
-	int trigX = 270;
-	
-	if(triggerRising)	{
-		tft.drawFastHLine(trigX, TFT_HEIGHT - 3, 5, ILI9341_GREEN);
-		tft.drawFastVLine(trigX + 4, TFT_HEIGHT -vOffset + 2, vOffset - 4, ILI9341_GREEN);
-		tft.drawFastHLine(trigX + 4, TFT_HEIGHT -vOffset + 2, 5, ILI9341_GREEN);
-		tft.fillTriangle(trigX + 2, 232, trigX + 4, 230, trigX + 6, 232, ILI9341_GREEN);
-	}
-	else	{
-		tft.drawFastHLine(trigX + 4, TFT_HEIGHT - 3, 5, ILI9341_GREEN);
-		tft.drawFastVLine(trigX + 4, TFT_HEIGHT -vOffset + 2, vOffset - 4, ILI9341_GREEN);
-		tft.drawFastHLine(trigX - 1, TFT_HEIGHT -vOffset + 2, 5, ILI9341_GREEN);
-		tft.fillTriangle(trigX + 2, 231, trigX + 4, 233, trigX + 6, 231, ILI9341_GREEN);
-	}	
-	
+	int trigX = 280;
+
+  switch(triggerDir)
+  {
+      case TRIGGER_RISING:
+         tft.drawFastHLine(trigX, TFT_HEIGHT - 3, 5, ILI9341_GREEN);
+         tft.drawFastVLine(trigX + 4, TFT_HEIGHT -vOffset + 2, vOffset - 4, ILI9341_GREEN);
+         tft.drawFastHLine(trigX + 4, TFT_HEIGHT -vOffset + 2, 5, ILI9341_GREEN);
+         tft.fillTriangle(trigX + 2, 232, trigX + 4, 230, trigX + 6, 232, ILI9341_GREEN);
+         break;
+      case TRIGGER_FALLING:
+         tft.drawFastHLine(trigX + 4, TFT_HEIGHT - 3, 5, ILI9341_GREEN);
+         tft.drawFastVLine(trigX + 4, TFT_HEIGHT -vOffset + 2, vOffset - 4, ILI9341_GREEN);
+         tft.drawFastHLine(trigX - 1, TFT_HEIGHT -vOffset + 2, 5, ILI9341_GREEN);
+         tft.fillTriangle(trigX + 2, 231, trigX + 4, 233, trigX + 6, 231, ILI9341_GREEN);
+         break;
+      case TRIGGER_ALL:
+         tft.drawFastVLine(trigX + 4, TFT_HEIGHT -vOffset + 2, vOffset - 4, ILI9341_GREEN);
+         tft.fillTriangle(trigX + 2, 228, trigX + 4, 226, trigX + 6, 228, ILI9341_GREEN);
+         tft.fillTriangle(trigX + 2, 234, trigX + 4, 236, trigX + 6, 234, ILI9341_GREEN);
+         break;          
+  }
 	
 	// draw trigger level on right side
 	// -----------------
@@ -749,8 +768,11 @@ void calculateStats()	{
 	wStats.freq = 1000000/avgCycleWidth;
 	wStats.cycle = avgCycleWidth/1000;
 	wStats.pulseValid = (avgCycleWidth != 0) && (wStats.avgPW != 0) && ((Vmax - Vmin) > 20);
-	
+#ifdef DSO_150     
 	wStats.mvPos = (rangePos == RNG_50mV) || (rangePos == RNG_20mV) || (rangePos == RNG_10mV) || (rangePos == RNG_5mV);
+#else
+  wStats.mvPos = (rangePos == RNG_50mV) || (rangePos == RNG_20mV) || (rangePos == RNG_10mV);
+#endif 
 	wStats.Vrmsf = sqrt(sumSquares/i) * adcMultiplier[rangePos];
 	wStats.Vavrf = sumSamples/i * adcMultiplier[rangePos];
 	wStats.Vmaxf = Vmax * adcMultiplier[rangePos];

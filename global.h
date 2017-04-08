@@ -1,7 +1,7 @@
 //Global Setup
 //============
 
-#define FIRMWARE_VERSION "1.1"
+#define FIRMWARE_VERSION "1.2"
 
 //If defined build for DSO-150 instead of DSO-138
 #define DSO_150
@@ -150,6 +150,8 @@
 #define PARAM_VRANGE  19
 #define PARAM_DSIZE   20  //20,21,22 - 3 params
 #define PARAM_FUNC    23
+#define PARAM_ZOOM    24
+#define PARAM_TSOURCE 25
 
 #define LED_ON	digitalWrite(BOARD_LED, LOW)
 #define LED_OFF	digitalWrite(BOARD_LED, HIGH)

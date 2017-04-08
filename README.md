@@ -19,6 +19,20 @@ Key Assignment:
 - Hold OK during power-up to reset settings
 
 
+Missing
+-------
+- EEPROM Save/Load not implemented yet...
+- Trigger on every change not working yet
+- Trigger on digital lines not working yet
+
+Libraries required
+-------------------
+extEERPOM
+Adafruit_GFX
+
+
+
+
 # DLO-138
 An open source firmware for DSO-138 Oscilloscope. 
 ![Photo](https://github.com/ardyesp/DLO-138/blob/master/pics/pic4.png)

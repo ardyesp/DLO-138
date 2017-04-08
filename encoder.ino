@@ -96,7 +96,7 @@ void readBSwitchISR()	{
 //Nasty, as these are shared with the display lines..
 //Interrupts would be nicer especially for the encoder as
 //it is very likely that we will miss some rational changes...
-
+#ifdef DSO_150
 boolean   pollControlSwitches(void)
 {
   static boolean pressed[5] ={false,false,false,false,false};
@@ -212,4 +212,4 @@ boolean   pollControlSwitches(void)
 
   return change;
 }
-
+#endif

@@ -5,7 +5,6 @@ const uint16_t timeoutDelayMs[] = {50, 50, 50, 100, 100, 100, 150, 250, 500, 100
 
 int16_t sDly, tDly;
 boolean minSamplesAcquired;
-boolean triggerRising;
 long prevTime = 0;
 
 // hold pointer references for updating variables in memory
@@ -24,18 +23,109 @@ void setSamplingRate(uint8_t timeBase)	{
 	Timer2.pause();
 }
 
-// ------------------------
-void setTriggerRising(boolean rising)	{
-// ------------------------
-	// trigger changed, break out from previous sampling loop
-	keepSampling = false;
-	triggerRising = rising;
-	// attach interrupt to trigger pin
-	detachInterrupt(TRIGGER_IN);
-	if(rising)
-		attachInterrupt(TRIGGER_IN, triggerISR, RISING);
-	else
-		attachInterrupt(TRIGGER_IN, triggerISR, FALLING);
+void setTriggerDir(uint8_t tdir)
+{
+  setTriggerSourceAndDir(triggerSource,tdir);
+}
+
+void setTriggerSource(uint8_t tsource)
+{
+  setTriggerSourceAndDir(tsource,triggerDir);
+}
+
+void setTriggerSourceAndDir(uint8_t source,uint8_t dir)
+{
+  // trigger changed, break out from previous sampling loop
+  keepSampling = false;
+
+  //Detach old source
+  switch(triggerSource)
+  {
+    case TRIGSRC_A1:
+       detachInterrupt(TRIGGER_IN);
+       break;
+    case TRIGSRC_D1:
+       detachInterrupt(DG_CH1);
+       break;     
+    case TRIGSRC_D2:
+       detachInterrupt(DG_CH2);
+       break;   
+#ifdef DSO_150          
+#ifdef ADD_D3       
+    case TRIGSRC_D3:
+       detachInterrupt(DG_CH3);
+       break;
+#endif  
+#endif                  
+  }
+
+  //Set new Trigger Source
+  switch (source)
+  {
+    case TRIGSRC_A1:
+        switch(dir)
+        {
+          case TRIGGER_RISING:
+             attachInterrupt(TRIGGER_IN, triggerISR, RISING);
+             break;
+          case TRIGGER_FALLING:
+             attachInterrupt(TRIGGER_IN, triggerISR, FALLING);
+             break; 
+          case TRIGGER_ALL:
+             attachInterrupt(TRIGGER_IN, triggerISR, CHANGE);
+             break;
+        }
+       break;
+    case TRIGSRC_D1:
+        switch(dir)
+        {
+          case TRIGGER_RISING:
+             attachInterrupt(DG_CH1, triggerISR, RISING);
+             break;
+          case TRIGGER_FALLING:
+             attachInterrupt(DG_CH1, triggerISR, FALLING);
+             break; 
+          case TRIGGER_ALL:
+             attachInterrupt(DG_CH1, triggerISR, CHANGE);
+             break;
+        }   
+       break;     
+    case TRIGSRC_D2:
+        switch(dir)
+        {
+          case TRIGGER_RISING:
+             attachInterrupt(DG_CH2, triggerISR, RISING);
+             break;
+          case TRIGGER_FALLING:
+             attachInterrupt(DG_CH2, triggerISR, FALLING);
+             break; 
+          case TRIGGER_ALL:
+             attachInterrupt(DG_CH2, triggerISR, CHANGE);
+             break;
+        }
+       break; 
+#ifdef DSO_150  
+#ifdef ADD_D3        
+    case TRIGSRC_D3:
+        switch(dir)
+        {
+          case TRIGGER_RISING:
+             attachInterrupt(DG_CH3, triggerISR, RISING);
+             break;
+          case TRIGGER_FALLING:
+             attachInterrupt(DG_CH3, triggerISR, FALLING);
+             break; 
+          case TRIGGER_ALL:
+             attachInterrupt(DG_CH3, triggerISR, CHANGE);
+             break;
+        }
+       break;    
+#endif
+#endif
+  }
+  //Store Vars
+  triggerDir = dir;
+  triggerSource = source;    
 }
 
 // ------------------------

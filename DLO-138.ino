@@ -17,7 +17,10 @@ void setup()	{
 	// set digital and analog stuff
 	initIO();
 
-
+#ifdef DSO_150_EEPROM
+  //Init external EEPROM
+  initExtEEPROM();
+#endif
 
 	// load scope config or factory reset to defaults
 #ifdef DSO_150

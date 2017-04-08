@@ -72,19 +72,35 @@ void resetParam()	{
 // ------------------------
 	// which label has current focus
 	switch(currentFocus)	{
+#ifdef DSO_150
 		case L_voltagerange:
 			setVoltageRange(RNG_5V);
 			break;
+#endif      
     case L_triggerLevel:
-      // set trigger level to 0
+      // set  level to 0
       setTriggerLevel(0);
       saveParameter(PARAM_TLEVEL, 0);
       repaintLabels();
-      break;      
+      break;  
+   case L_triggerEdge:
+      setTriggerDir(TRIGGER_RISING);
+      saveParameter(PARAM_TRIGDIR, triggerDir);
+      repaintLabels();
+      break;     
 		case L_window:
 			// set x in the middle
 			changeXCursor((NUM_SAMPLES - GRID_WIDTH)/2);
 			break;
+    case L_triggerSource:
+      setTriggerSource(TRIGSRC_A1);
+      repaintLabels();
+      break;
+    case L_zoom: 
+      setZoomFactor(ZOOM_X1);
+      saveParameter(PARAM_ZOOM, xZoom);
+      repaintLabels();  
+      break;   
 		case L_vPos1:
 			// zero the trace base
 			calculateTraceZero(0);
@@ -109,12 +125,16 @@ void resetParam()	{
       {
         dumpSamples();
       }
+#ifdef DSO_150_EEPROM      
       else if (currentFunction==FUNC_LOAD)
       {
+        loadWaveform();        
       }
       else
       {
+        saveWaveform();        
       }
+#endif      
       break;      
 		default:
 			break;
@@ -189,17 +209,25 @@ void encoderChanged(int steps)	{
 		case L_timebase:
 			if(steps > 0) decrementTimeBase(); else	incrementTimeBase();
 			break;
+#ifdef DSO_150      
     case L_voltagerange:
       if(steps > 0) decrementVoltageRange(); else incrementVoltageRange();
-      break;     
+      break;  
+#endif         
     case L_function:
       if(steps > 0) incrementFunc(); else decrementFunc();
-      break;       
+      break; 
+    case L_triggerSource:
+      if(steps > 0) incrementTSource(); else decrementTSource();
+      break; 
+    case L_zoom:
+      if(steps > 0) incrementZoom(); else decrementZoom();
+      break;      
 		case L_triggerType:
 			if(steps > 0) incrementTT(); else decrementTT();
 			break;
 		case L_triggerEdge:
-			if(steps > 0) setTriggerRising(); else setTriggerFalling();
+			if(steps > 0) incrementEdge(); else decrementEdge();
 			break;
 		case L_triggerLevel:
 			if(steps > 0) incrementTLevel(); else decrementTLevel();
@@ -327,26 +355,27 @@ void decrementWaves()	{
 }
 
 // ------------------------
-void setTriggerRising()	{
+void incrementEdge()
 // ------------------------
-	if(triggerRising)
-		return;
-	
-	setTriggerRising(true);
-	saveParameter(PARAM_TRIGDIR, triggerRising);
-	repaintLabels();
+{
+  if(triggerDir == TRIGGER_ALL)
+    return;
+  setTriggerDir(triggerDir+1);
+  saveParameter(PARAM_TRIGDIR, triggerDir);
+  repaintLabels();
 }
 
 // ------------------------
-void setTriggerFalling()	{
+void decrementEdge()
 // ------------------------
-	if(!triggerRising)
-		return;
-	
-	setTriggerRising(false);
-	saveParameter(PARAM_TRIGDIR, triggerRising);
-	repaintLabels();
+{
+  if(triggerDir == TRIGGER_RISING)
+    return;
+  setTriggerDir(triggerDir-1);
+  saveParameter(PARAM_TRIGDIR, triggerDir);
+  repaintLabels();
 }
+
 
 // ------------------------
 void nextTT()  {
@@ -356,7 +385,7 @@ void nextTT()  {
   else
   triggerType++;
   setTriggerType(triggerType);
-  // trigger type is not saved
+  //  type is not saved
   saveParameter(PARAM_TRIGTYPE, triggerType);
 }
 
@@ -367,7 +396,7 @@ void incrementTT()	{
 		return;
 	
 	setTriggerType(triggerType + 1);
-	// trigger type is not saved
+	//  type is not saved
 	saveParameter(PARAM_TRIGTYPE, triggerType);
 	repaintLabels();
 }
@@ -378,10 +407,86 @@ void decrementTT()	{
 	if(triggerType == TRIGGER_AUTO)
 		return;
 	setTriggerType(triggerType - 1);
-	// trigger type is not saved
+	//  type is not saved
 	saveParameter(PARAM_TRIGTYPE, triggerType);
 	repaintLabels();
 }
+
+// ------------------------
+void incrementZoom()  {
+// ------------------------
+  if(zoomFactor == ZOOM_X8)
+    return;
+  
+  setZoomFactor(zoomFactor+1);
+
+  saveParameter(PARAM_ZOOM, zoomFactor);
+  repaintLabels();
+}
+
+// ------------------------
+void decrementZoom()  {
+// ------------------------
+  if(zoomFactor == ZOOM_X1)
+    return;
+
+  setZoomFactor(zoomFactor-1);
+
+  saveParameter(PARAM_ZOOM, zoomFactor);
+  repaintLabels();
+}
+
+// ------------------------
+void setZoomFactor(uint8_t zoomF)
+// ------------------------
+{
+  zoomFactor = zoomF;
+
+  switch(zoomF)
+  {
+     case ZOOM_X1:
+        xZoom = 1;
+        break;    
+     case ZOOM_X2:
+        xZoom = 2;
+        break;    
+     case ZOOM_X4:
+        xZoom = 4;
+        break;    
+     case ZOOM_X8:
+        xZoom = 8;
+        break;                                      
+  }
+  clearWaves();
+}
+
+// ------------------------
+void incrementTSource()  {
+// ------------------------
+#ifdef ADD_D3
+  if(triggerSource == TRIGSRC_D3)
+#else
+  if(triggerSource == TRIGSRC_D2)
+#endif
+    return;
+  
+  setTriggerSource(triggerSource + 1);
+  //  type is not saved
+  saveParameter(PARAM_TSOURCE, triggerSource);
+  repaintLabels();
+}
+
+// ------------------------
+void decrementTSource()  {
+// ------------------------
+  if(triggerSource == TRIGSRC_A1)
+    return;
+  setTriggerSource(triggerSource - 1);
+  //  type is not saved
+  saveParameter(PARAM_TSOURCE, triggerSource);
+  repaintLabels();
+}
+
 
 // ------------------------
 void incrementFunc()
@@ -394,7 +499,7 @@ void incrementFunc()
 #endif
     return;
   currentFunction++;
-  // trigger type is not saved
+  //  type is not saved
   saveParameter(PARAM_FUNC,currentFunction);
   repaintLabels();
 }
@@ -406,7 +511,7 @@ void decrementFunc()
   if(currentFunction == FUNC_SERIAL)
     return;
   currentFunction--;
-  // trigger type is not saved
+  //  type is not saved
   saveParameter(PARAM_FUNC,currentFunction);
   repaintLabels();
 }
@@ -441,22 +546,34 @@ void decrementTimeBase()	{
 	setTimeBase(currentTimeBase - 1);
 }
 
+
+#ifdef DSO_150
 // ------------------------
 void nextVoltageRange()  
 // ------------------------
 {
+#ifdef DSO_150     
   if(currentVoltageRange == RNG_5mV)
-    currentVoltageRange = RNG_20V;
+      currentVoltageRange = RNG_20V;
+#else
+  if(currentVoltageRange == RNG_10mV)
+      currentVoltageRange = RNG_5V;
+#endif
   else
     currentVoltageRange++;
   setVoltageRange(currentVoltageRange);
 }
 
+
 // ------------------------
 void incrementVoltageRange()  
 // ------------------------
 {
+#ifdef DSO_150     
   if(currentVoltageRange == RNG_5mV)
+#else
+  if(currentVoltageRange == RNG_10mV)
+#endif  
     return;
   
   setVoltageRange(currentVoltageRange + 1);
@@ -466,7 +583,11 @@ void incrementVoltageRange()
 void decrementVoltageRange() 
 // ------------------------
 {  
+#ifdef DSO_150    
   if(currentVoltageRange == RNG_20V)
+#else
+  if(currentVoltageRange == RNG_5V)
+#endif
     return;
   
   setVoltageRange(currentVoltageRange - 1);
@@ -483,7 +604,7 @@ void setVoltageRange(uint8_t voltageRange)  {
   // request repainting of screen labels
   repaintLabels();
 }
-
+#endif
 
 // ------------------------
 void setTimeBase(uint8_t timeBase)	{
@@ -525,8 +646,8 @@ void changeXCursor(int16_t xPos)	{
 	if(xPos < 0)
 		xPos = 0;
 	
-	if(xPos > (NUM_SAMPLES - GRID_WIDTH))
-		xPos = NUM_SAMPLES - GRID_WIDTH;
+	if(xPos > ((NUM_SAMPLES) - (GRID_WIDTH*xZoom)))
+		xPos = (NUM_SAMPLES) - (GRID_WIDTH*xZoom);
 	
 	xCursor = xPos;
 	saveParameter(PARAM_XCURSOR, xCursor);

@@ -12,12 +12,14 @@ void initIO()	{
 	pinMode(AN_CH2, INPUT_ANALOG);
   #endif
 
-	pinMode(DG_CH1, INPUT_PULLDOWN);
-	pinMode(DG_CH2, INPUT_PULLDOWN);
+	pinMode(DG_CH1, INPUT_PULLUP);
+	pinMode(DG_CH2, INPUT_PULLUP);
 
+#ifdef DSO_150
   #ifdef ADD_D3
-  pinMode(DG_CH3, INPUT_PULLDOWN);
+  pinMode(DG_CH3, INPUT_PULLUP);
   #endif
+#endif
 
   pinMode(CPLSEL,INPUT_ANALOG);
   
@@ -138,6 +140,7 @@ void setTriggerLevel(int16_t tLvl)	{
 	pwmWrite(TRIGGER_LEVEL, 1800 + trigLevel);
 }
 
+#ifdef DSO_150
 // ------------------------
 void setVRange(uint8_t voltageRange) 
 // ------------------------
@@ -149,6 +152,7 @@ void setVRange(uint8_t voltageRange)
   digitalWrite(VSENSSEL2, (val>>2) & 0x01);
   digitalWrite(VSENSSEL3, (val>>3) & 0x01);
 }
+#endif
 
 // ------------------------
 void readInpSwitches()	{
