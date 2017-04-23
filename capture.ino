@@ -90,6 +90,7 @@ void setTriggerSourceAndDir(uint8_t source,uint8_t dir)
              break;
         }   
        break;     
+
     case TRIGSRC_D2:
         switch(dir)
         {
@@ -580,5 +581,259 @@ void printSample(uint16_t k, float timeStamp) {
 		DBG_PRINT("\t<--TRIG");
 	
 	DBG_PRINTLN();
+}
+
+
+// ------------------------
+void calculateTraceZero(int waveID)    {
+// ------------------------
+  // calculate zero only if switch is in GND position
+  if(couplingPos != CPL_GND)
+    return;
+
+#ifdef ADD_AN2 
+  if(waveID > 1)
+    return;
+  uint16_t *wave = (waveID == 0)? ch1Capture : ch2Capture;
+
+#else
+  if(waveID > 0)
+    return;
+    
+uint16_t *wave =  ch1Capture;
+#endif
+  
+  // zero the trace
+  int32_t sumSamples = 0;
+
+  for(uint16_t k = 0; k < NUM_SAMPLES; k++) {
+    sumSamples += wave[k];
+  }
+
+  uint16_t Vavr = sumSamples/NUM_SAMPLES;
+
+  if(waveID == 0) {
+    zeroVoltageA1 = Vavr;
+    saveParameter(PARAM_ZERO1, zeroVoltageA1);
+  }
+  else  {
+    zeroVoltageA2 = Vavr;
+    saveParameter(PARAM_ZERO2, zeroVoltageA2);
+  }
+}
+
+
+enum {TESTMODE_GND,TESTMODE_PULSE,TESTMODE_3V3,TESTMODE_0V1};
+
+void setTestPin(uint8_t mode)
+{
+  switch (mode)
+  {
+      case TESTMODE_GND:
+          pinMode(TEST_AMPSEL,INPUT_ANALOG);
+          pinMode(TEST_WAVE_PIN, OUTPUT);
+          digitalWrite(TEST_WAVE_PIN,LOW);
+      break;         
+      case TESTMODE_3V3:
+          pinMode(TEST_AMPSEL,INPUT_PULLUP);
+          pinMode(TEST_WAVE_PIN, OUTPUT);
+          digitalWrite(TEST_WAVE_PIN,HIGH);
+      break;  
+      case TESTMODE_0V1:
+          pinMode(TEST_AMPSEL,OUTPUT);
+          digitalWrite(TEST_AMPSEL,LOW);
+          pinMode(TEST_WAVE_PIN, OUTPUT);
+          digitalWrite(TEST_WAVE_PIN,HIGH);
+      break;              
+      case TESTMODE_PULSE:
+          pinMode(TEST_AMPSEL,INPUT_ANALOG);
+          // start 1KHz square wave
+          pinMode(TEST_WAVE_PIN, PWM);
+          Timer3.setPeriod(1000);
+          pwmWrite(TEST_WAVE_PIN, 17850);
+      break;
+  }  
+}
+
+void loopThroughRange(uint8_t rangeStart,uint8_t rangecount,uint16_t *pResults)
+{
+  uint16_t *wave =  ch1Capture;
+  int32_t sumSamples = 0;
+  for(uint8_t cnt= rangeStart;cnt<rangeStart+rangecount;cnt++)
+  {
+      //Set Range
+      setVoltageRange(cnt);
+      //Wait for new Data
+      sampleWaves(true);
+      delay(400);
+      //Calc Average
+      sumSamples = 0; 
+      for(uint16_t k = 0; k < NUM_SAMPLES; k++) 
+        sumSamples += wave[k];
+      pResults[cnt] = sumSamples/NUM_SAMPLES;
+      DBG_PRINT(rngNames[cnt]);
+      DBG_PRINT(" Sum: ");
+      DBG_PRINTLN(sumSamples);    
+      
+  }
+}
+
+void autoCal(void)
+{
+    //We need to store calibration data for each voltage range
+    uint16_t zeroOffset[RNG_5mV+1];
+    uint16_t val3V3[RNG_5mV+1];
+    uint16_t val0V1[RNG_5mV+1];
+    uint16_t tVal3V3[RNG_5mV+1];
+    uint16_t tVal0V1[RNG_5mV+1];
+    float mulVal[RNG_5mV+1];
+    float highcal =3.3;
+    float lowcal=0.14;
+    const float rangeMultiplier[] = {0.05,0.1,0.2,0.5,1,2,5,10,20,50,100,200}; 
+    
+    uint8_t ii=0;
+    
+    for(ii=0;ii!=RNG_5mV;ii++)
+    {
+      zeroOffset[ii] = 0;
+      val3V3[ii] = 0;  
+      val0V1[ii] = 0;
+      tVal3V3[ii] = 0;   
+      tVal0V1[ii] = 0;
+    }
+    
+    
+    //Set Trigger to NORM
+    setTriggerType(TRIGGER_AUTO);
+    //Set timebase to 50uS
+    setTimeBase(T50US);
+    //Start capturing
+    hold = false;
+
+    //Disable Wavweform output
+    setTestPin(TESTMODE_GND);
+    //Capture full range for Zero Cal
+    loopThroughRange(RNG_20V,RNG_5mV+1,zeroOffset);
+
+    //Set 3.3 V
+    setTestPin(TESTMODE_3V3);
+    //Capture first part of Range
+    loopThroughRange(RNG_20V,RNG_5mV+1,val3V3);
+    
+    //Set 0.1 V
+    setTestPin(TESTMODE_0V1);
+    //Capture first part of Range
+    loopThroughRange(RNG_20V,RNG_5mV+1,val0V1);
+
+    //Subtract zero offsets
+    for(ii=0;ii<RNG_5mV+1;ii++)
+    {
+        val3V3[ii]= val3V3[ii]- zeroOffset[ii];
+        val0V1[ii]= val0V1[ii]- zeroOffset[ii];
+    }
+
+    //Time to do some calulation...
+    //The only value we  can reasonably rely on is the 3.3V reference value
+    //So the first task is to calulate the voltage for the low reference (~140mV)
+    //We use the value measured at the x2 range as it has ther biggest overlap
+    lowcal = (float)val0V1[5]/(float)val3V3[5]*highcal;
+    DBG_PRINT("HighCal: "); 
+    DBG_PRINTLN(highcal); 
+    DBG_PRINT("LowCal: "); 
+    DBG_PRINTLN(lowcal); 
+
+    //Now we can calculate the multipliers based on these values
+    mulVal[0] = highcal/((float)val3V3[0]);
+    mulVal[1] = highcal/((float)val3V3[1]);
+    mulVal[2] = highcal/((float)val3V3[2]);     
+    mulVal[3] = highcal/((float)val3V3[3]);
+    mulVal[4] = highcal/((float)val3V3[4]);
+    
+    mulVal[5] = highcal/((float)val3V3[5]);    
+    mulVal[5] = mulVal[5] + (lowcal/((float)val0V1[5]));  
+    mulVal[5] = mulVal[5]/2;
+    
+    mulVal[6] = highcal/((float)val3V3[6]); 
+    mulVal[6] = mulVal[6] + (lowcal/((float)val0V1[6]));  
+    mulVal[6] = mulVal[6]/2;
+    
+    mulVal[7] = lowcal/((float)val0V1[7]);  
+    mulVal[8] = lowcal/((float)val0V1[8]);  
+    mulVal[9] = lowcal/((float)val0V1[9]);  
+    mulVal[10] = lowcal/((float)val0V1[10]);              
+    mulVal[11] = lowcal/((float)val0V1[11]);  
+    
+    //Set Trigger to 0
+    //Set Trigger mode to Single
+    //Set Range
+    //set Test output to Low
+
+    //While not triggered
+        //Increase Trigger
+        //Toggle output to High
+        //Wait a little bit
+        //Toggle output to Low    
+
+
+    //Print results
+    DBG_PRINT("Zero Point:");
+    for(ii=0;ii<RNG_5mV+1;ii++)
+    {
+        DBG_PRINT(zeroOffset[ii]); 
+        DBG_PRINT(","); 
+    }
+    DBG_PRINTLN("");     
+
+    DBG_PRINT("3.3V:");
+    for(ii=0;ii<RNG_5mV+1;ii++)
+    {
+        DBG_PRINT(val3V3[ii]); 
+        DBG_PRINT(","); 
+    }
+    DBG_PRINTLN("");   
+        
+    DBG_PRINT("0.1V:");
+    for(ii=0;ii<RNG_5mV+1;ii++)
+    {
+        DBG_PRINT(val0V1[ii]); 
+        DBG_PRINT(","); 
+    }
+    DBG_PRINTLN("");   
+
+    DBG_PRINT("CalMultipliers:");
+    for(ii=0;ii<RNG_5mV+1;ii++)
+    {
+        DBG_PRINT(mulVal[ii]*100000.0); 
+        DBG_PRINT(","); 
+    }
+    DBG_PRINTLN("");   
+
+
+    DBG_PRINT("CalCheck1:");
+    for(ii=0;ii<RNG_5mV+1;ii++)
+    {
+        DBG_PRINT((float)val3V3[ii]*mulVal[ii]); 
+        DBG_PRINT(","); 
+    }
+    DBG_PRINTLN("");   
+
+    DBG_PRINT("CalCheck2:");
+    for(ii=0;ii<RNG_5mV+1;ii++)
+    {
+        DBG_PRINT((float)val0V1[ii]*mulVal[ii]); 
+        DBG_PRINT(","); 
+    }
+    DBG_PRINTLN("");  
+    
+    setTestPin(TESTMODE_PULSE);   
+
+    //Store Values
+    for(ii=0;ii<RNG_5mV+1;ii++)
+    {
+      adcMultiplier[ii] = mulVal[ii];
+      zeroVoltageA1Cal[ii] = zeroOffset[ii];
+    }
+    formatSaveConfig();
+    
 }
 

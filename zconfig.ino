@@ -9,6 +9,7 @@
 
 // ------------------------
 void loadConfig(boolean reset)	{
+  int16_t ii;
 // ------------------------
 	DBG_PRINTLN("Loading stored config...");
 
@@ -96,7 +97,28 @@ void loadConfig(boolean reset)	{
 
   data = EEPROM.read(PARAM_TSOURCE);
   setTriggerSource(data);
-  
+
+  for (ii=0;ii<RNG_5mV+1;ii++)
+  {
+    data = EEPROM.read(PARAM_ZERO1CAL+ii);
+    zeroVoltageA1Cal[ii] = data;
+  }
+
+  for (ii=0;ii<RNG_5mV+1;ii++)
+  {
+    data = EEPROM.read(PARAM_ZERO1CAL+ii);
+    zeroVoltageA1Cal[ii] = data;
+  }
+
+  for (ii=0;ii<RNG_5mV+1;ii++)
+  {
+    data = EEPROM.read(PARAM_GAIN1CAL+ii);
+    adcMultiplier[ii] = (uint16_t)((float)data/100000.0);
+  }
+  //Force Voltage Range reload
+  #ifdef DSO_150   
+     setVoltageRange(currentVoltageRange);
+  #endif
   
 	DBG_PRINTLN("Loaded config:");
 	DBG_PRINT("Timebase: ");DBG_PRINTLN(currentTimeBase);
@@ -155,6 +177,7 @@ void loadConfig(boolean reset)	{
 // ------------------------
 void loadDefaults()	{
 // ------------------------
+ uint16_t ii;
 	DBG_PRINTLN("Loading defaults");
 
 	setTimeBase(T30US);
@@ -197,11 +220,23 @@ void loadDefaults()	{
 
   triggerSource = 0;
 
+   for (ii=0;ii<RNG_5mV+1;ii++)
+  {
+    zeroVoltageA1Cal[ii] = 1985;
+  }
+
+  adcMultiplier[ii] = 0.088;
+  for (ii=1;ii<RNG_5mV+1;ii++)
+  {
+    adcMultiplier[ii] = adcMultiplier[ii-1]/2;
+  }
+
 }
 
 // ------------------------
 void formatSaveConfig()	{
 // ------------------------
+  uint16_t ii;
 	DBG_PRINTLN("Formatting EEPROM");
 	EEPROM.format();
 	DBG_PRINTLN("Saving all config params....");
@@ -237,6 +272,16 @@ void formatSaveConfig()	{
   saveParameter(PARAM_FUNC,currentFunction);
   saveParameter(PARAM_ZOOM,zoomFactor);
   saveParameter(PARAM_TSOURCE,triggerSource);
+
+  for (ii=0;ii<RNG_5mV+1;ii++)
+  {
+    saveParameter(PARAM_ZERO1CAL+ii,zeroVoltageA1Cal[ii]);
+  }
+
+  for (ii=0;ii<RNG_5mV+1;ii++)
+  {
+    saveParameter(PARAM_GAIN1CAL+ii,(uint16_t)(adcMultiplier[ii]*100000.0));
+  }
 }
 
 // ------------------------

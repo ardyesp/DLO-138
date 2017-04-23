@@ -1,5 +1,5 @@
-# DLO-150
-All documentation below for DLO-138 might be obsolete....Work-In Progress
+# Open DSO-150
+All documentation below for DSO-138 might be obsolete....Work-In Progress
 
 - For the moment you will have to compile and upload yourself
 - all options are in global.h

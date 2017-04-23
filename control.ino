@@ -1,6 +1,5 @@
 
-enum { TRIGGER_AUTO, TRIGGER_NORM, TRIGGER_SINGLE };
-uint8_t triggerType;
+
 
 
 // ------------------------
@@ -50,8 +49,6 @@ void controlLoop()	{
 		// draw the waveform
 		drawWaves();
 		blinkLED();
-		// dump captured data on serial port
-		//dumpSamples();
 
 		// freeze display
 		while(hold)
@@ -95,8 +92,6 @@ void captureDisplayCycle(boolean wTimeOut)	{
 	{
 		// update UI labels
 		drawLabels();
-		// dump captured data on serial port
-		//dumpSamples();
 	}
 	
 	// freeze display if requested

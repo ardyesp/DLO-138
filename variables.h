@@ -29,6 +29,9 @@ struct Stats {
 	float Vminf;
 } wStats;
 
+enum { TRIGGER_AUTO, TRIGGER_NORM, TRIGGER_SINGLE };
+uint8_t triggerType;
+
 enum {CPL_GND, CPL_AC, CPL_DC};
 const char* cplNames[] = {"GND", "AC", "DC"}; 
 
@@ -52,9 +55,9 @@ const char* trigSourceNames[] = {"A1", "D1", "D2"};
 uint8_t triggerSource;
 
 
-enum {FUNC_SERIAL, FUNC_LOAD, FUNC_SAVE};
+enum {FUNC_SERIAL, FUNC_LOAD, FUNC_SAVE,FUNC_AUTOCAL};
 #ifdef DSO_150
-const char* functionNames[] = {"SERIAL", "LOAD", "SAVE"}; 
+const char* functionNames[] = {"SERIAL", "LOAD", "SAVE","AUTOCAL"}; 
 #else
 const char* functionNames[] = {"SERIAL"}; 
 #endif
@@ -63,8 +66,8 @@ uint8_t currentFunction;
 #ifdef DSO_150
 enum {RNG_20V,RNG_10V,RNG_5V, RNG_2V, RNG_1V, RNG_0_5V, RNG_0_2V, RNG_0_1V, RNG_50mV, RNG_20mV, RNG_10mV,RNG_5mV};
 const char* rngNames[] = {"20V","10V","5V", "2V", "1V", "0.5V", "0.2V", "0.1V", "50mV", "20mV", "10mV","5mV"}; 
-const float adcMultiplier[] = {0.088,0.0589,0.0366, 0.0188, 0.0097, 0.0085, 0.0034, 0.0017, 0.0005, 0.0002, 0.0001}; 
-const unsigned char tbBitval[] = {3,5,0,7,6,4,11,13,8,15,9,12}; 
+float adcMultiplier[] = {0.088,0.0589,0.0366, 0.0188, 0.0097, 0.0085, 0.0034, 0.0017, 0.0005, 0.0002, 0.0001,0.00005}; 
+const unsigned char tbBitval[] = {3,5,0,7,6,4,11,13,8,15,14,12}; 
 #else
 enum {RNG_5V, RNG_2V, RNG_1V, RNG_0_5V, RNG_0_2V, RNG_0_1V, RNG_50mV, RNG_20mV, RNG_10mV};
 const char* rngNames[] = {"5V", "2V", "1V", "0.5V", "0.2V", "0.1V", "50mV", "20mV", "10mV"}; 
@@ -78,6 +81,8 @@ uint8_t couplingPos, rangePos;
 
 // this represents the offset voltage at ADC input (1.66V), when Analog input is zero
 int16_t zeroVoltageA1, zeroVoltageA2;
+
+int16_t zeroVoltageA1Cal[] = {0,0,0,0,0,0,0,0,0,0,0,0};
 
 // timebase enumerations and store
 enum {T20US, T30US, T50US, T0_1MS, T0_2MS, T0_5MS, T1MS, T2MS, T5MS, T10MS, T20MS, T50MS};

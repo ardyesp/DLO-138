@@ -1,5 +1,5 @@
 int16_t trigLevel = 0;
-
+volatile uint8_t ledState = 0;
 
 // ------------------------
 void initIO()	{
@@ -11,13 +11,14 @@ void initIO()	{
   #ifdef ADD_AN2
 	pinMode(AN_CH2, INPUT_ANALOG);
   #endif
+  
+  pinMode(DG_CH1, INPUT_PULLDOWN);
+	pinMode(DG_CH2, INPUT_PULLDOWN);
 
-	pinMode(DG_CH1, INPUT_PULLUP);
-	pinMode(DG_CH2, INPUT_PULLUP);
 
 #ifdef DSO_150
   #ifdef ADD_D3
-  pinMode(DG_CH3, INPUT_PULLUP);
+  pinMode(DG_CH3, INPUT_PULLDOWN);
   #endif
 #endif
 
@@ -32,19 +33,20 @@ void initIO()	{
 	setADC();
 
 	// start 1KHz square wave
-	pinMode(TEST_WAVE_PIN, PWM);
-	Timer3.setPeriod(1000);
-	pwmWrite(TEST_WAVE_PIN, 17850);
+	setTestPin(TESTMODE_PULSE);
 	DBG_PRINTLN("Test square wave started");
 
  #ifdef DSO_150  
+ //  pinMode(TEST_AMPSEL, OUTPUT);
+ //  digitalWrite(TEST_AMPSEL,LOW);
+   
   pinMode(VSENSSEL0, OUTPUT);
   pinMode(VSENSSEL1, OUTPUT);
   pinMode(VSENSSEL2, OUTPUT);
   pinMode(VSENSSEL3, OUTPUT);    
 
   attachInterrupt(ENCODER_A, readEncoderISR, CHANGE);
-  attachInterrupt(ENCODER_B, readEncoderISR, CHANGE);  
+  attachInterrupt(ENCODER_B, readEncoderISR, CHANGE);   
  #else
 	// input button and encoder
 	pinMode(ENCODER_SW, INPUT_PULLUP);
@@ -108,9 +110,11 @@ void setADC()	{
 // ------------------------
 void blinkLED()	{
 // ------------------------
-	LED_ON;
-	delay(10);
-	LED_OFF;
+	//LED_ON;
+	//delay(10);
+	//LED_OFF;
+  ledState = !ledState;
+  digitalWrite(BOARD_LED, ledState);
 }
 
 
@@ -146,6 +150,8 @@ void setVRange(uint8_t voltageRange)
 // ------------------------
 {
   unsigned char val = tbBitval[voltageRange];
+
+  zeroVoltageA1 = zeroVoltageA1Cal[voltageRange];
   
   digitalWrite(VSENSSEL0, (val>>0) & 0x01);
   digitalWrite(VSENSSEL1, (val>>1) & 0x01);

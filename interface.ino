@@ -130,11 +130,16 @@ void resetParam()	{
       {
         loadWaveform();        
       }
-      else
+      else if (currentFunction==FUNC_SAVE)
       {
         saveWaveform();        
       }
-#endif      
+
+#endif    
+      else if (currentFunction==FUNC_AUTOCAL)
+      {
+        autoCal();
+      }  
       break;      
 		default:
 			break;
@@ -161,44 +166,6 @@ void changeDSize(uint8_t wave)
   drawWaves();
 }
 
-
-// ------------------------
-void calculateTraceZero(int waveID)		{
-// ------------------------
-	// calculate zero only if switch is in GND position
-	if(couplingPos != CPL_GND)
-		return;
-
-#ifdef ADD_AN2 
-	if(waveID > 1)
-		return;
-  uint16_t *wave = (waveID == 0)? ch1Capture : ch2Capture;
-
-#else
-  if(waveID > 0)
-    return;
-    
-uint16_t *wave =  ch1Capture;
-#endif
-  
-	// zero the trace
-	int32_t sumSamples = 0;
-
-	for(uint16_t k = 0; k < NUM_SAMPLES; k++)	{
-		sumSamples += wave[k];
-	}
-
-	uint16_t Vavr = sumSamples/NUM_SAMPLES;
-
-	if(waveID == 0)	{
-		zeroVoltageA1 = Vavr;
-		saveParameter(PARAM_ZERO1, zeroVoltageA1);
-	}
-	else	{
-		zeroVoltageA2 = Vavr;
-		saveParameter(PARAM_ZERO2, zeroVoltageA2);
-	}
-}
 
 
 // ------------------------
@@ -493,7 +460,7 @@ void incrementFunc()
 // ------------------------
 {
 #ifdef DSO_150  
-  if(currentFunction == FUNC_SAVE)
+  if(currentFunction == FUNC_AUTOCAL)
 #else
   if(currentFunction == FUNC_SERIAL)
 #endif

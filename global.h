@@ -152,6 +152,8 @@
 #define PARAM_FUNC    23
 #define PARAM_ZOOM    24
 #define PARAM_TSOURCE 25
+#define PARAM_ZERO1CAL 26 //26 - 37 12 params
+#define PARAM_GAIN1CAL 38 //38 - 49 12 params
 
 #define LED_ON	digitalWrite(BOARD_LED, LOW)
 #define LED_OFF	digitalWrite(BOARD_LED, HIGH)
