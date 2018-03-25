@@ -1,13 +1,13 @@
 # Open DSO-150
 
-##Complete rewrite of DSO-150 Firmware
+## Complete rewrite of DSO-150 Firmware
 
 - No longer DSO-138 compatible (Sorry...)
 - Rewritten for Atollic trueSTUDIO Yea... Real debugging)
 - Now using internal digital trigger through ADC IRQ (So trigger level can now be correlated to real voltage)
 - Lots of new features
 
-##Features
+## Features
 - Support 1 Analog and up to 3 Digital Channels
 - Trigger on rising/falling/both edges
 - Trigger on Analog, Digital 1,2,3 Signal
@@ -26,25 +26,25 @@
 - AC/DC mode
 - 3K Sampling Depth
 
-##Images
+## Images
 
-###Features
-![Features](/Pics/features.jpg)
+### Features
+![Features](/Pics/features.JPG)
 
-###Stats Display
-![Stats](/Pics/stats.jpg)
+### Stats Display
+![Stats](/Pics/stats.JPG)
 
-###Voltage Display
-![Voltage](/Pics/voltage.jpg)
+### Voltage Display
+![Voltage](/Pics/voltage.JPG)
 
-###Zoom
-![Zoom](/Pics/zoom.jpg)
+### Zoom
+![Zoom](/Pics/zoom.JPG)
 
-###Digital
-![Digital](/Pics/digital.jpg)
+### Digital
+![Digital](/Pics/digital.JPG)
 
-###Cursors
-![Cursors](/Pics/cursors.jpg)
+### Cursors
+![Cursors](/Pics/cursors.JPG)
 
 ## Key Assignment
 - Encoder Left/Right -> Change Value
@@ -76,15 +76,15 @@
 - Pressing V/Div,Sec/Div/Trigger while field is activated toggles through settings
 - Hold OK button at power-up -> Reset all values to defaults
 
-###Cursor Mode
+### Cursor Mode
 There are some limitations in cursor mode. While it is possible to use cursors both on signals in hold mode and running mode only the functions available via the buttons are available to modify.
-Short-Press on the encoder button returns back to curosr mode, long press on encoder-button disables encoder mode. 
+Short-Press on the encoder button returns back to cursor mode, long press on encoder-button disables cursor mode. 
 
-###Loop Mode
+### Loop Mode
 In Loop mode samples will be added on the right side of the waveform. The buffer is limited to the width of the screen. (Works espcially well with voltage display enabled as voltmeter with history...)
 
-##Building Open DSO-150
-Open DSO-150 should build directly after opening the project in the free STM32 version of Atollic trueSUDIO.
+## Building Open DSO-150
+Open DSO-150 should build directly after opening the project in the free STM32 version of Atollic trueSTUDIO.
 https://atollic.com/truestudio/
 
 It should also compile under the System Workbench for STM32 after creating a new project and importing the soruce files but I haven't tried that...
@@ -95,13 +95,13 @@ With an STLink V2 probe it is very easy to both program and debug the scope via 
 ## Libraries Used
 The code for the graphics library is based on a heavily modified/optimized version of the Adafruit_GFX/Adafruit_TFT libraries. 	
 
-##TODO
+## TODO
 - UI becoems annoyingly unresponsive when using longer timebase. One solution is to go from a hard-coded sample loop to timer-based aquisition. (Has it's own problems as the display updates interfere with the digital data quisition and interrupts mess up the timebase...)
 - If somebody has a working example of using a STM32 timer to trigger the ADC and then have the ADC trigger an IRQ let me know.... Should work but I had no luck getting that to work...
 
 ## References
-Adafruit Graphics Library - https://github.com/adafruit/Adafruit-GFX-Library
-Parallel 8 bit ILI9341 library - https://github.com/stevstrong/Adafruit_TFTLCD_8bit_STM32
+- Adafruit Graphics Library - https://github.com/adafruit/Adafruit-GFX-Library
+- Parallel 8 bit ILI9341 library - https://github.com/stevstrong/Adafruit_TFTLCD_8bit_STM32
 
  
 
