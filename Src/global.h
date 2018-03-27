@@ -6,7 +6,7 @@
 
 #include <stdint.h>
 
-#define FIRMWARE_VERSION "2.0"
+#define FIRMWARE_VERSION "3.0"
 #define FIRMWARE_TARGET "C++ DSO-150"
 #define FIRMWARE_INFO "DSO-150 Hardware by JYE-Tech"
 

@@ -18,6 +18,7 @@
 extern t_config config;
 extern uint8_t currentFocus;
 extern volatile bool hold;
+extern volatile bool keepSampling;
 
 int encoderVal = 0;
 
@@ -25,7 +26,20 @@ extern "C" void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	readEncoderISR();
+	//if encoder
+	if((GPIO_Pin == DB0_Pin) || (GPIO_Pin == DB1_Pin))
+	{
+		keepSampling = false;
+	    readEncoderISR();
+	}
+	else if (GPIO_Pin == DB7_Pin) //OK button
+	{
+		hold = true;
+	}
+	else
+	{
+		keepSampling = false;
+	}
 }
 
 

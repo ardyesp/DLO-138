@@ -204,11 +204,22 @@ void EXTI1_IRQHandler(void)
 	HAL_GPIO_EXTI_IRQHandler(DB1_Pin);
 }
 
+void EXTI3_IRQHandler(void)
+{
+	HAL_GPIO_EXTI_IRQHandler(DB3_Pin);
+}
 
-//Trig on PA8
+void EXTI4_IRQHandler(void)
+{
+	HAL_GPIO_EXTI_IRQHandler(DB4_Pin);
+}
+
 void EXTI9_5_IRQHandler(void)
 {
-	HAL_GPIO_TRIG_IRQHandler(TRIG_Pin);
+	//determine source
+	HAL_GPIO_EXTI_IRQHandler(DB5_Pin);
+	HAL_GPIO_EXTI_IRQHandler(DB6_Pin);
+	HAL_GPIO_EXTI_IRQHandler(DB7_Pin);
 }
 
 //D1,D2,D3 on PB13,14,15
@@ -223,6 +234,13 @@ void TIM2_IRQHandler(void)
 {
   HAL_TIM_IRQHandler(&htim2);
 }
+
+//Timer 2 Timeout
+void TIM4_IRQHandler(void)
+{
+	HAL_SAMPLING_IRQHandler();
+}
+
 
 //SFC IRQ
 void ADC1_2_IRQHandler(void)

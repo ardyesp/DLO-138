@@ -10,7 +10,9 @@
 #include <string.h>
 
 extern "C" void HAL_GPIO_TRIG_IRQHandler(uint16_t GPIO_Pin);
+extern "C" void HAL_SAMPLING_IRQHandler(void);
 
+extern TIM_HandleTypeDef htim4;  //TIMER Sample Timing
 extern TIM_HandleTypeDef htim2;  //TIMER ScanTimeout
 extern ADC_HandleTypeDef hadc1;  //Analog ADC
 
@@ -20,6 +22,7 @@ extern const char* rngNames[];
 extern const char* tbNames[];
 
 extern volatile bool hold;
+volatile uint16_t iIndex = 0;
 
 extern t_config config;
 extern t_Stats wStats;
@@ -30,14 +33,16 @@ uint16_t ch1Capture[NUM_SAMPLES] = {0};
 uint16_t bitStore[NUM_SAMPLES] = {0};
 
 volatile bool keepSampling = true;
+volatile bool minSamplesAcquired;
+volatile uint16_t lCtr = 0;
+volatile bool triggered = false;
+volatile bool hold = false;
 
-bool minSamplesAcquired;
 long prevTime = 0;
 int16_t sDly, tDly;
 uint16_t tIndex = 0;
 uint16_t sIndex = 0;
-volatile bool triggered = false;
-volatile bool hold = false;
+
 long samplingTime;
 
 bool trigger_lo_hi = false;
@@ -45,15 +50,15 @@ bool trigger_hi_lo = false;
 uint16_t trigger_level = 2048;
 
 
-// hold pointer references for updating variables in memory
-uint16_t *sIndexPtr = &sIndex;
-volatile bool *triggeredPtr = &triggered;
-
 //---------------------
 void stopSampling(void)
 //---------------------
 {
+#ifdef USE_TIMER_SAMPLE
+	minSamplesAcquired = true;
+#else
 	keepSampling = false;
+#endif
 }
 
 
@@ -67,8 +72,6 @@ extern "C" void HAL_GPIO_TRIG_IRQHandler(uint16_t GPIO_Pin)
   }
 }
 
-
-
 void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	scanTimeoutISR();
@@ -81,14 +84,12 @@ void setTriggerSourceAndDir(uint8_t source,uint8_t dir)
   uint32_t pin = 0;
   uint32_t mode = 0;
 
-  HAL_NVIC_DisableIRQ(EXTI9_5_IRQn);
   HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
   HAL_NVIC_DisableIRQ(ADC1_2_IRQn);
   // trigger changed, break out from previous sampling loop
   stopSampling();
 
   //Detach old source
-  setPinMode(TRIG_GPIO_Port,TRIG_Pin,GPIO_MODE_INPUT,GPIO_PULLDOWN,GPIO_SPEED_FREQ_LOW);
   setPinMode(D1_GPIO_Port,D1_Pin,GPIO_MODE_INPUT,GPIO_PULLDOWN,GPIO_SPEED_FREQ_LOW);
   setPinMode(D2_GPIO_Port,D2_Pin,GPIO_MODE_INPUT,GPIO_PULLDOWN,GPIO_SPEED_FREQ_LOW);
   setPinMode(D3_GPIO_Port,D3_Pin,GPIO_MODE_INPUT,GPIO_PULLDOWN,GPIO_SPEED_FREQ_LOW);
@@ -159,14 +160,33 @@ void setTriggerSourceAndDir(uint8_t source,uint8_t dir)
 void sampleWaves(bool wTimeout)
 // ------------------------
 {
+#ifdef USE_TIMER_SAMPLE
+	if (!minSamplesAcquired)
+		return;
+#endif
+
 	// setup timed interrupt to terminate scanning if trigger not found
 	if(wTimeout)
 		startScanTimeout(tDly);
 
 	// start sampling loop - until timeout or trigger
+	// clear old dataset
+
+	samplingTime = 0;
+	triggered = false;
+	sIndex = 0;
+	iIndex = 0;
+	prevTime = micros();
+	lCtr = 0;
+	keepSampling = true;
+	minSamplesAcquired = false;
+
+
+#ifndef USE_TIMER_SAMPLE
 	startSampling(sDly);
 	// disable scan timeout timer
     timerPause(&htim2);
+#endif
 }
 
 
@@ -191,13 +211,13 @@ void triggerISR(void)
 		// skip this trigger if min samples not acquired
 		if(!minSamplesAcquired && (sIndex < NUM_SAMPLES/2))
 			return;
-		
+
 		// snap the position where trigger occurred
 		tIndex = sIndex;
 		// avoid multiple triggering
 		triggered = true;
 	}
-} 
+}
 
 // ------------------------
 void scanTimeoutISR(void)
@@ -214,16 +234,8 @@ void scanTimeoutISR(void)
 void startSampling(int16_t lDelay)
 // ------------------------
 {
-	uint16_t lCtr = 0;
-    int16_t cnt = lDelay;
 
-	// clear old dataset
-	keepSampling = true;
-	minSamplesAcquired = false;
-	samplingTime = 0;
-	triggered = false;
-	sIndex = 0;
-	prevTime = micros();
+    int16_t cnt = lDelay;
 
 	if(lDelay < 0)  //Delay < 0 (What does that even mean??? As fast as possible?)
 	{
@@ -505,8 +517,6 @@ void autoCal(void)
 	//Start capturing
 	hold = false;
 
-	//Disable Waveform output
-	setTestPin(TESTMODE_GND);
 	//Capture full range for Zero Cal
 	loopThroughRange(RNG_20V,RNG_5mV+1,zeroOffset);
 	hold = true;
@@ -614,31 +624,47 @@ void HAL_ADC_LevelOutOfWindowCallback(ADC_HandleTypeDef* hadc)
   }
 }
 
-/*
-void adc_irq(void)
+
+extern "C" void HAL_SAMPLING_IRQHandler(void)
 {
+	__HAL_TIM_CLEAR_IT(&htim4, TIM_IT_CC1);
+	if (minSamplesAcquired)
+	{
+		__HAL_TIM_CLEAR_IT(&htim4, TIM_IT_CC1);
+		sIndex = iIndex;
+		return;
+	}
+
 	if (triggered)   //After Triggered
 	{
 		lCtr++;
 		if(lCtr == (NUM_SAMPLES/2))  //Fill up half the buffer with samples so Trigger point aligns at middle of sample buffer..
 		{
-			//Stop sampling by disabling timer?
-			//TODO
+			minSamplesAcquired = true;
+			__HAL_TIM_CLEAR_IT(&htim4, TIM_IT_CC1);
+			sIndex = iIndex;
 			return;
 		}
 	}
 	//If sample index rolls over reset to zero and record start sampling time
-	if (sIndex == NUM_SAMPLES)
+	if (iIndex == NUM_SAMPLES)
 	{
-		sIndex = 0;
+		iIndex = 0;
 		snapMicros();
 	}
 
-	bitStore[sIndex] = GPIOB->IDR;  //Store GPIO
- 	ch1Capture[sIndex] = hadc1.Instance->DR;  //Store ADC (Resets IrQ)
-	sIndex++;  //Increase index
+    //Sample analog data
+ 	ch1Capture[iIndex] = hadc1.Instance->DR;  //Store ADC
 
+ 	//Need to make sure pins are in input mode as we could hit IRQ during display routine...
+
+	bitStore[iIndex] = GPIOB->IDR;  //Store GPIO
+
+
+	//Increase index
+	iIndex++;
 }
+/*
 
 
 

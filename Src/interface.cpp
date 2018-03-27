@@ -7,6 +7,7 @@
 #include "io.hpp"
 #include "awrap.hpp"
 
+extern TIM_HandleTypeDef htim4;  //TIMER Sample Timing
 extern TIM_HandleTypeDef htim2;  //TIMER ScanTimeout
 
 extern t_config config;
@@ -17,10 +18,11 @@ extern volatile bool hold;
 
 uint8_t rangePos;
 
-// sampling delay table in quarter-microseconds
+// sampling delay table in quarter-microseconds (not sure where the quarter-microseconds come from it's just a delayloop...)
 const int16_t samplingDelay[] =   {-1,  0, 14, 38, 86, 229, 468, 948, 2385, 4776, 9570, 23940,0x7FFE};
-const uint16_t timeoutDelayMs[] = {50, 50, 50, 100, 100, 100, 150, 250, 500, 1000, 2000, 4500,0x7FFE};
-
+//Timeout delay in  milliseconds
+const uint16_t timeoutDelayMs[] = {75, 75, 75, 150, 150, 150, 150, 250, 500, 1000, 2000, 4000,0x7FFE};
+const uint16_t samplingTimerDelay[] = {20, 30, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000,0xFFFF};
 // ------------------------
 void resetParam()
 // ------------------------
@@ -562,7 +564,12 @@ void changeXCursor(int16_t xPos)
 void setSamplingRate(uint8_t timeBase)
 // ------------------------
 {
-	sDly = samplingDelay[timeBase];
+#ifdef USE_TIMER_SAMPLE
+  timerSetPeriod(&htim4,samplingTimerDelay[timeBase]);
+#else
+  sDly = samplingDelay[timeBase];
+#endif
+
 	tDly = timeoutDelayMs[timeBase];
 	// sampling rate changed, break out from previous sampling loop
 	stopSampling();
