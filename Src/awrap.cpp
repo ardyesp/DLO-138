@@ -111,7 +111,6 @@ void timerSetPeriod(TIM_HandleTypeDef *htim,uint32_t ms_period)
   uint16_t overflow = (uint16_t)((period_cyc + (prescaler / 2)) / prescaler);
   timerSetPrescaler(htim,prescaler);
   timerSetOverflow(htim,overflow);
-  timerSetCount(htim,0);
 
 }
 

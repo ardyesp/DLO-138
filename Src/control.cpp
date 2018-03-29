@@ -11,7 +11,6 @@
 extern t_config config;
 extern volatile bool triggered;
 extern volatile bool hold;
-extern volatile bool minSamplesAcquired;
 static uint32_t cnt = SAVE_COUNTER;
 // ------------------------
 void controlLoop()
@@ -38,38 +37,32 @@ void controlLoop()
 		indicateCapturing();
 		// blocking call - until trigger
 		sampleWaves(false);
-		hold = true;
-		// draw the waveform
-#ifdef USE_TIMER_SAMPLE
-		if(minSamplesAcquired)
-		{
-			indicateCapturingDone();
-			drawWaves();
-		}
-#else
 		indicateCapturingDone();
-		drawWaves();
-#endif
+		hold = true;
+    
 		// request repainting of screen labels in next draw cycle
 		repaintLabels();
+		// draw the waveform
+		drawWaves();
 		blinkLED();
 
 		// freeze display
 		while(hold)
 		{
-		   if (pollControlSwitches())
-		   {
-			  clearWaves();
-			  repaintLabels();
-			  drawWaves();
-           }
-	    }
+          if (pollControlSwitches())
+          {
+            clearWaves();
+            repaintLabels();
+            drawWaves();
+          }
+		}
    
 		// update display indicating hold released
 		drawLabels();
 	}
 
 	// process any long pending operations which cannot be serviced in ISR
+
 	cnt--;
 	if (cnt==0)
 	{
@@ -88,17 +81,8 @@ void captureDisplayCycle(bool wTimeOut)
     pollControlSwitches();
   
 	// draw the waveform
-#ifdef USE_TIMER_SAMPLE
-    if(minSamplesAcquired)
-    {
-    	indicateCapturingDone();
-    	drawWaves();
-    }
-#else
 	indicateCapturingDone();
 	drawWaves();
-#endif
-
 	// inter wait before next sampling
 	if(triggered)
 		blinkLED();
