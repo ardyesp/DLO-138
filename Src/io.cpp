@@ -6,7 +6,6 @@
 #include "capture.hpp"
 #include "stm32f1xx_hal.h"
 
-extern TIM_HandleTypeDef htim4;  //TIMER Sample Timing
 extern TIM_HandleTypeDef htim3;  //PWM Test Output
 extern TIM_HandleTypeDef htim2;  //TIMER ScanTimeout
 
@@ -26,39 +25,39 @@ void initIO()
   //Painful manual Setup for the External interrupt assignments
 
   //Setup Encoder IRQ
-	//---------------
-  //Set Pin B0,B1 to trigger IRQ on Rising/Falling Edge...
+  //---------------
+  //Set Pin B0,B1,B2,B4,B5,B6,B7 to trigger IRQ on Rising/Falling Edge...
   SET_BIT(EXTI->RTSR, 0x0003);
-  SET_BIT(EXTI->FTSR, 0x0003);
-  //Setup EXTI0,EXTI1 to map to GPIOB
-  SET_BIT(AFIO->EXTICR[0], 0x0011);
+  SET_BIT(EXTI->FTSR, 0x00FB);
+  //Setup EXTI0,EXTI1,EXTI3,EXTI4,EXTI5_9 to map to GPIOB
+  SET_BIT(AFIO->EXTICR[0], 0x1011);
+  SET_BIT(AFIO->EXTICR[1], 0x1111);
   //Enable EXTI interrupts
-  SET_BIT(EXTI->IMR, 0x0003);
+  SET_BIT(EXTI->IMR, 0x0FB);
 
   //Set Encoder Priorities
-  HAL_NVIC_SetPriority(EXTI0_IRQn,0x0F, 0);
-  HAL_NVIC_SetPriority(EXTI1_IRQn,0x0F, 0);
+  HAL_NVIC_SetPriority(EXTI0_IRQn,0x08, 0);
+  HAL_NVIC_SetPriority(EXTI1_IRQn,0x08, 0);
+  HAL_NVIC_SetPriority(EXTI3_IRQn,0x08, 0);
+  HAL_NVIC_SetPriority(EXTI4_IRQn,0x08, 0);
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn,0x08, 0);
 
    //Set Trigger Priorities
-  HAL_NVIC_SetPriority(EXTI15_10_IRQn,0x04, 0);
-  HAL_NVIC_SetPriority(ADC1_2_IRQn,0x04, 0);
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn,0x06, 0);
+  HAL_NVIC_SetPriority(ADC1_2_IRQn,0x06, 0);
+
+  //Set Timer Priority
+  HAL_NVIC_SetPriority(TIM2_IRQn,0x0A, 0);
 
   //Enable NVIC Interrupts
   HAL_NVIC_EnableIRQ(EXTI0_IRQn);
   HAL_NVIC_EnableIRQ(EXTI1_IRQn);
   HAL_NVIC_EnableIRQ(TIM2_IRQn);
-
   HAL_NVIC_EnableIRQ(ADC1_2_IRQn);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
-
-  HAL_TIM_PWM_MspInit(&htim3);
-  HAL_TIM_OC_MspInit(&htim4);
-  HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_2);
-  HAL_TIM_OC_Start(&htim4,TIM_CHANNEL_4);
-
   blinkLED();
-  HAL_TIM_OC_MspInit(&htim2);
+  HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_2);
 	
   // init scan timeout timer
   initScanTimeout();

@@ -30,24 +30,20 @@ uint16_t ch1Capture[NUM_SAMPLES] = {0};
 uint16_t bitStore[NUM_SAMPLES] = {0};
 
 volatile bool keepSampling = true;
+volatile bool holdSampling = false;
 
-bool minSamplesAcquired;
-long prevTime = 0;
+volatile bool minSamplesAcquired;
+uint32_t prevTime = 0;
 int16_t sDly, tDly;
 uint16_t tIndex = 0;
 uint16_t sIndex = 0;
 volatile bool triggered = false;
 volatile bool hold = false;
-long samplingTime;
+volatile uint32_t samplingTime;
 
 bool trigger_lo_hi = false;
 bool trigger_hi_lo = false;
 uint16_t trigger_level = 2048;
-
-
-// hold pointer references for updating variables in memory
-uint16_t *sIndexPtr = &sIndex;
-volatile bool *triggeredPtr = &triggered;
 
 //---------------------
 void stopSampling(void)
@@ -81,23 +77,16 @@ void setTriggerSourceAndDir(uint8_t source,uint8_t dir)
   uint32_t pin = 0;
   uint32_t mode = 0;
 
-  HAL_NVIC_DisableIRQ(EXTI9_5_IRQn);
   HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
   HAL_NVIC_DisableIRQ(ADC1_2_IRQn);
   // trigger changed, break out from previous sampling loop
   stopSampling();
 
   //Detach old source
-  setPinMode(TRIG_GPIO_Port,TRIG_Pin,GPIO_MODE_INPUT,GPIO_PULLDOWN,GPIO_SPEED_FREQ_LOW);
   setPinMode(D1_GPIO_Port,D1_Pin,GPIO_MODE_INPUT,GPIO_PULLDOWN,GPIO_SPEED_FREQ_LOW);
   setPinMode(D2_GPIO_Port,D2_Pin,GPIO_MODE_INPUT,GPIO_PULLDOWN,GPIO_SPEED_FREQ_LOW);
   setPinMode(D3_GPIO_Port,D3_Pin,GPIO_MODE_INPUT,GPIO_PULLDOWN,GPIO_SPEED_FREQ_LOW);
 
-  //mask all trigger EXTI interrupts
-  //CLEAR_BIT(EXTI->IMR, TRIG_Pin);
-  //CLEAR_BIT(EXTI->IMR, D1_Pin);
-  //CLEAR_BIT(EXTI->IMR, D2_Pin);
- // CLEAR_BIT(EXTI->IMR, D3_Pin);
 
   switch (dir)
   {
@@ -224,6 +213,9 @@ void startSampling(int16_t lDelay)
 	triggered = false;
 	sIndex = 0;
 	prevTime = micros();
+    HAL_NVIC_EnableIRQ(EXTI3_IRQn);
+	HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+	HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
 	if(lDelay < 0)  //Delay < 0 (What does that even mean??? As fast as possible?)
 	{
@@ -305,15 +297,20 @@ void startSampling(int16_t lDelay)
                 cnt--;
         }
     }
+	HAL_NVIC_DisableIRQ(EXTI3_IRQn);
+	HAL_NVIC_DisableIRQ(EXTI4_IRQn);
+	HAL_NVIC_DisableIRQ(EXTI9_5_IRQn);
 }
 
 
 // ------------------------
-inline void snapMicros()	
+//inline void snapMicros()
+void snapMicros()
 // ------------------------
 {
-	samplingTime = micros() - prevTime;
-	prevTime = micros();
+	uint32_t st = micros();
+	samplingTime = st - prevTime;
+	prevTime = st;
 	minSamplesAcquired = true;
 }
 

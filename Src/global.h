@@ -6,7 +6,7 @@
 
 #include <stdint.h>
 
-#define FIRMWARE_VERSION "2.0"
+#define FIRMWARE_VERSION "3.0"
 #define FIRMWARE_TARGET "C++ DSO-150"
 #define FIRMWARE_INFO "DSO-150 Hardware by JYE-Tech"
 
@@ -30,8 +30,8 @@
 #define XCURSOR_STEP_COARSE  75
 #define YCURSOR_STEP_COARSE  15
 
-#define BTN_DEBOUNCE_TIME	50
-#define BTN_LONG_PRESS    800
+#define BTN_LONG_PRESS    700
+#define BTN_DEBOUNCE_TIME 15
 
 #define A1   0
 #define D1   1

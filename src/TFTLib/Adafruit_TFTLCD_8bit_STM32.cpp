@@ -12,10 +12,6 @@ uint32_t opReg;
 #define CS_ACTIVE  { intReg = EXTI->IMR;opReg = TFT_DATA->ODR;EXTI->IMR = 0 ; TFT_DATA->CRL = 0x33333333 ;GPIOC->BRR  = TFT_CS_MASK; }
 #define CS_IDLE    { TFT_DATA->ODR = opReg;TFT_DATA->CRL = 0x88888888; GPIOC->BSRR = TFT_CS_MASK ; EXTI->IMR = intReg; }
 
-//uint32_t intReg;
-//#define CS_ACTIVE  { intReg = EXTI->IMR;EXTI->IMR = 0 ; TFT_DATA->CRL = 0x33333333 ;GPIOC->BRR  = TFT_CS_MASK; }
-//#define CS_IDLE    { TFT_DATA->CRL = 0x88888888; GPIOC->BSRR = TFT_CS_MASK ; EXTI->IMR = intReg; }
-
 #define WR_STROBE    { WR_ACTIVE; WR_IDLE; }
 
 
@@ -230,7 +226,7 @@ void fillRect(int16_t x1, int16_t y1, int16_t w, int16_t h, uint16_t fillcolor)
 void fillScreen(uint16_t color)
 {
   setAddrWindow(0, 0, TFTWIDTH - 1, TFTHEIGHTREAL - 1);
-  flood(color, (long)TFTWIDTH * (long)TFTHEIGHTREAL);
+  flood(color, (uint32_t)TFTWIDTH * (uint32_t)TFTHEIGHTREAL);
 }
 
 /*****************************************************************************/

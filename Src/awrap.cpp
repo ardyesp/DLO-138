@@ -3,7 +3,7 @@
 
 //Arduino Function Wrapper...
 
-void delayMS(unsigned long ms)
+void delayMS(uint32_t ms)
 {
 	HAL_Delay(ms);
 }
@@ -24,7 +24,7 @@ inline void delayUS(uint32_t us)
                  : "r0");
 }
 
-long millis(void)
+uint32_t millis(void)
 {
 	return HAL_GetTick();
 }
@@ -32,9 +32,9 @@ long millis(void)
 #define SYSTICK_RELOAD_VAL (SystemCoreClock/1000)
 #define CYCLES_PER_MICROSECOND (SystemCoreClock / 1000000L)
 
-long micros(void)
+uint32_t micros(void)
 {
-    long ms;
+	uint32_t ms;
     uint32_t cycle_cnt;
 
     do {

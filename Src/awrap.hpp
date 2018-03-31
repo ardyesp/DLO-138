@@ -8,11 +8,11 @@
 
 #define DBG_PRINT(fmt, ...)  printf(fmt, ##__VA_ARGS__);
 
-extern void delayMS(unsigned long ms);
+extern void delayMS(uint32_t ms);
 extern void delayUS(uint32_t us);
 void setPinMode(GPIO_TypeDef  *GPIOx,uint32_t Pin,uint32_t Mode, uint32_t Pull,uint32_t Speed);
-extern long millis(void);
-extern long micros(void);
+extern uint32_t millis(void);
+extern uint32_t micros(void);
 
 extern void timerPause(TIM_HandleTypeDef *htim);
 extern void timerResume(TIM_HandleTypeDef *htim);

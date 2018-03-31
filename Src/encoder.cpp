@@ -15,17 +15,61 @@
 #include "awrap.hpp"
 #include "capture.hpp"
 
+
+#define ENC_BUTTON    0
+#define VDIV_BUTTON   1
+#define SECDIV_BUTTON 2
+#define TRIG_BUTTON   3
+#define OK_BUTTON     4
+
+
 extern t_config config;
 extern uint8_t currentFocus;
 extern volatile bool hold;
+extern volatile bool keepSampling;
+extern volatile bool holdSampling;
+
+volatile uint32_t pressedTime[5] = {0,0,0,0,0};
+uint16_t pin[5] = {DB3_Pin,DB4_Pin,DB5_Pin,DB6_Pin,DB7_Pin};
+GPIO_TypeDef* port[5] ={DB3_GPIO_Port,DB4_GPIO_Port,DB5_GPIO_Port,DB6_GPIO_Port,DB7_GPIO_Port};
+volatile uint8_t pos[5] = {0,0,0,0,0};
+volatile bool pressed[5] ={false,false,false,false,false};
+bool requestHold = false;
 
 int encoderVal = 0;
 
 extern "C" void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
 
+//There's some funkyness going on with variables in the IRQ routine.
+//Seems variable need to be declared somewhere else and then linked in va 'extern'....
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	readEncoderISR();
+
+	switch(GPIO_Pin)
+	{
+	case DB0_Pin:
+	case DB1_Pin:
+		keepSampling = false;
+		readEncoderISR();
+		break;
+	case DB3_Pin:
+		keepSampling = false;
+		break;
+	case DB4_Pin:
+		keepSampling = false;
+		break;
+	case DB5_Pin:
+		keepSampling = false;
+		break;
+	case DB6_Pin:
+		keepSampling = false;
+		break;
+	case DB7_Pin:
+		if (hold == false)
+			holdSampling = true;
+		break;
+	}
 }
 
 
@@ -79,23 +123,14 @@ void readEncoderISR()
 	lastPos = posNow;
 }
 
-#define ENC_BUTTON    0
-#define VDIV_BUTTON   1
-#define SECDIV_BUTTON 2
-#define TRIG_BUTTON   3
-#define OK_BUTTON     4
+
 
 //Poll the control switches on DSO-150
 bool   pollControlSwitches(void)
 {
-  static bool pressed[5] ={false,false,false,false,false};
-  static long pressedTime[5] = {0,0,0,0,0};
-  static uint16_t pin[5] = {DB3_Pin,DB4_Pin,DB5_Pin,DB6_Pin,DB7_Pin};
-  static GPIO_TypeDef* port[5] ={DB3_GPIO_Port,DB4_GPIO_Port,DB5_GPIO_Port,DB6_GPIO_Port,DB7_GPIO_Port};
-  static uint8_t pos[5] = {0,0,0,0,0};
-  int ii=0;
   bool change = false;
   static int lastEncVal = 0;
+  uint32_t ii=0;
 
 //Process Encoder
 //--------------
@@ -110,47 +145,46 @@ bool   pollControlSwitches(void)
 		encoderChanged(steps);
 	}
 	lastEncVal = encoderVal;
-	return change;
   }
 
 
-//Read Buttons
-//------------
+  //Read Buttons
+  //------------
 
-  for(ii=0;ii<5;ii++)
-  {
-    pos[ii] = 0; 
-    // btn pressed or released?
-    if(!pressed[ii] && (HAL_GPIO_ReadPin(port[ii], pin[ii]) == GPIO_PIN_RESET))
+    for(ii=0;ii<5;ii++)
     {
-      // debounce
-      if(millis() - pressedTime[ii] < BTN_DEBOUNCE_TIME)
-        continue;
-      pressedTime[ii] = millis();
-      pressed[ii] = true;
-    }
-    
-    if(pressed[ii] && (HAL_GPIO_ReadPin(port[ii], pin[ii]) == GPIO_PIN_SET))
-    {
-      // debounce
-      if(millis() - pressedTime[ii] < BTN_DEBOUNCE_TIME)
-        continue;
-      
-      pressed[ii] = false;
-        
-      // is it a short press
-      if(millis() - pressedTime[ii] < BTN_LONG_PRESS) 
+      pos[ii] = 0;
+      // btn pressed or released?
+      if(!pressed[ii] && (HAL_GPIO_ReadPin(port[ii], pin[ii]) == GPIO_PIN_RESET))
       {
-        pos[ii]=SHORTPRESS;  
+        // debounce
+        if(millis() - pressedTime[ii] < BTN_DEBOUNCE_TIME)
+          continue;
+        pressedTime[ii] = millis();
+        pressed[ii] = true;
       }
-      else  
+
+      if(pressed[ii] && (HAL_GPIO_ReadPin(port[ii], pin[ii]) == GPIO_PIN_SET))
       {
-        // long press reset parameter to default
-        //resetParam();
-        pos[ii]=LONGPRESS;
+        // debounce
+        if(millis() - pressedTime[ii] < BTN_DEBOUNCE_TIME)
+          continue;
+
+        pressed[ii] = false;
+
+        // is it a short press
+        if(millis() - pressedTime[ii] < BTN_LONG_PRESS)
+        {
+          pos[ii]=SHORTPRESS;
+        }
+        else
+        {
+          // long press reset parameter to default
+          //resetParam();
+          pos[ii]=LONGPRESS;
+        }
       }
     }
-  }
 
   //Handle Buttons...
   //-----------------
@@ -168,13 +202,15 @@ bool   pollControlSwitches(void)
      if(config.triggerType != TRIGGER_AUTO)
     		stopSampling();
 
-    change=true;       
+    change=true;
+    DBG_PRINT("ENC SHORT");
   }  
   else if (pos[ENC_BUTTON] == LONGPRESS)
   {
     // long press reset parameter to default
     resetParam();
     change=true;    
+    DBG_PRINT("ENC LONG");
   }
 
   //V/Div Button
@@ -185,6 +221,7 @@ bool   pollControlSwitches(void)
     else       
       setFocusLabel(L_voltagerange);
     change=true;   
+    DBG_PRINT("VDIV SHORT");
   }
   else if (pos[VDIV_BUTTON] == LONGPRESS)
   {
@@ -192,6 +229,7 @@ bool   pollControlSwitches(void)
 	  config.printVoltage = !config.printVoltage;
       if (config.printVoltage)
     	  config.printStats = false;
+      DBG_PRINT("VDIV LONG");
   }
   
 //Sec/Div Button
@@ -201,10 +239,12 @@ bool   pollControlSwitches(void)
       nextTimeBase();
     else   
       setFocusLabel(L_timebase);
-    change=true;      
+    change=true;
+    DBG_PRINT("SECDIV SHORT");
   }
   else if (pos[SECDIV_BUTTON] == LONGPRESS)
   {
+      DBG_PRINT("SECDIV LONG");
   }
 
 //Trigger Button
@@ -214,19 +254,36 @@ bool   pollControlSwitches(void)
       nextTT();
     else
       setFocusLabel(L_triggerLevel);
-    change=true;      
+    change=true;
+    DBG_PRINT("TRIG SHORT");
   }
   else if (pos[TRIG_BUTTON] == LONGPRESS)
   {   
-    togglePersistence();       
+    togglePersistence();
+    DBG_PRINT("TRIG LONG");
   }
 
 //OK Button
-  if (pos[OK_BUTTON] == SHORTPRESS)
+  if((holdSampling) && (hold == false))
+  {
+	    hold = true;
+	    repaintLabels();
+	    change=true;
+	    DBG_PRINT("OIRQ REQ HOLD");
+  }
+  else if (pos[OK_BUTTON] == SHORTPRESS)
   {      // toggle hold
-    hold = !hold;
-    repaintLabels();
-    change=true;    
+	if (holdSampling)
+	{
+		holdSampling = false;
+	}
+	else
+	{
+		hold = !hold;
+		repaintLabels();
+		change=true;
+		DBG_PRINT("OK SHORT");
+	}
   }
   else if (pos[OK_BUTTON] == LONGPRESS)
   {
@@ -234,7 +291,7 @@ bool   pollControlSwitches(void)
 	  config.printStats = !config.printStats;
       if (config.printStats)
     	  config.printVoltage = false;
+      DBG_PRINT("OK LONG");
   }
-  
   return change;
 }

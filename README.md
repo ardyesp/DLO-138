@@ -15,7 +15,7 @@
 - Exact trigger voltage
 - Serial Data Dump
 - Automatic Zero-Level Cal for all gain-stages
-- Voltmeter mode (Averaged over waveform)
+- Voltmeter mode (Averaged over last 10 samples)
 - Signal Statistics Display
 - Cursors for Analog Signal
 - Load/Store Waveform to/from Flash
@@ -96,7 +96,6 @@ With an STLink V2 probe it is very easy to both program and debug the scope via 
 The code for the graphics library is based on a heavily modified/optimized version of the Adafruit_GFX/Adafruit_TFT libraries. 	
 
 ## TODO
-- UI becoems annoyingly unresponsive when using longer timebase. One solution is to go from a hard-coded sample loop to timer-based aquisition. (Has it's own problems as the display updates interfere with the digital data quisition and interrupts mess up the timebase...)
 - If somebody has a working example of using a STM32 timer to trigger the ADC and then have the ADC trigger an IRQ let me know.... Should work but I had no luck getting that to work...
 
 ## References

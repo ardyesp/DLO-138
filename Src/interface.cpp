@@ -18,8 +18,8 @@ extern volatile bool hold;
 uint8_t rangePos;
 
 // sampling delay table in quarter-microseconds
-const int16_t samplingDelay[] =   {-1,  0, 14, 38, 86, 229, 468, 948, 2385, 4776, 9570, 23940,0x7FFE};
-const uint16_t timeoutDelayMs[] = {50, 50, 50, 100, 100, 100, 150, 250, 500, 1000, 2000, 4500,0x7FFE};
+const int16_t samplingDelay[] =   {-1,  0, 13, 36, 74, 197, 403, 813, 2041, 4126, 8268, 20684,0x7FFE};
+const uint16_t timeoutDelayMs[] = {50, 50, 50, 100, 100, 100, 150, 300, 700, 1400, 3200, 5000,0x7FFE};
 
 // ------------------------
 void resetParam()

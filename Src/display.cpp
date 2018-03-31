@@ -15,7 +15,7 @@ extern uint8_t couplingPos;
 extern uint8_t rangePos;
 extern uint16_t sIndex;
 extern volatile bool hold;
-extern long samplingTime;
+extern uint32_t samplingTime;
 
 int8_t bitOld[GRID_WIDTH] = {0};
 
@@ -38,7 +38,7 @@ uint8_t dHeight = GRID_HEIGHT/8;
 
 uint8_t xZoom;
 t_Stats wStats;
-long triggertimer = 0;
+uint32_t triggertimer = 0;
 
 const uint16_t sampleUs[] =   {20,  30, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000,0};
 
@@ -665,7 +665,7 @@ void drawLabels()
 void drawStats()
 // ------------------------
 {
-	static long lastCalcTime = 0;
+	static uint32_t lastCalcTime = 0;
 	bool clearStats = false;
 	
 	// calculate stats once a while
@@ -978,7 +978,7 @@ void draw_markerstats(void)
 
 	//clear stats
 	tft_writeFillRect(265, 20, GRID_WIDTH + hOffset - 265 - 1, 50, ILI9341_BLACK);
-	tft_writeFillRect(52, 20, 45, 50, ILI9341_BLACK);
+	tft_writeFillRect(52, 20, 50, 50, ILI9341_BLACK);
 
 	// print new stats
 	tft_setTextColor(ILI9341_WHITE, ILI9341_BLACK);
