@@ -213,6 +213,14 @@ void startSampling(int16_t lDelay)
 	triggered = false;
 	sIndex = 0;
 	prevTime = micros();
+	//clear any pending interrupts
+	__HAL_GPIO_EXTI_CLEAR_IT(DB3_Pin);
+	__HAL_GPIO_EXTI_CLEAR_IT(DB4_Pin);
+	__HAL_GPIO_EXTI_CLEAR_IT(DB5_Pin);
+	__HAL_GPIO_EXTI_CLEAR_IT(DB6_Pin);
+	__HAL_GPIO_EXTI_CLEAR_IT(DB7_Pin);
+
+	//enable Interrupts for buttons
     HAL_NVIC_EnableIRQ(EXTI3_IRQn);
 	HAL_NVIC_EnableIRQ(EXTI4_IRQn);
 	HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
@@ -233,7 +241,7 @@ void startSampling(int16_t lDelay)
             {
                 lCtr++;
                 if(lCtr == (NUM_SAMPLES/2))   //Why do we only sample half the numbers of samples?
-                    return;
+                    goto exit;
             }
         }
 	}
@@ -255,7 +263,7 @@ void startSampling(int16_t lDelay)
             {
                 lCtr++;
                 if(lCtr == (NUM_SAMPLES/2))
-                    return;
+                    goto exit;;
             }
         }
 	}
@@ -271,7 +279,7 @@ void startSampling(int16_t lDelay)
             ch1Capture[GRID_WIDTH*xZoom] = hadc1.Instance->DR;
             bitStore[GRID_WIDTH*xZoom] = GPIOB->IDR;
             sIndex = GRID_WIDTH*xZoom;
-            return;
+            goto exit;;
         }
 	}
 	else //Delay > 0, wait for some time inbetween samples
@@ -290,13 +298,14 @@ void startSampling(int16_t lDelay)
             {
                 lCtr++;
                 if(lCtr == (NUM_SAMPLES/2))
-                    return;
+                    goto exit;
             }
             cnt = lDelay;
             while (cnt)
                 cnt--;
         }
     }
+	exit:
 	HAL_NVIC_DisableIRQ(EXTI3_IRQn);
 	HAL_NVIC_DisableIRQ(EXTI4_IRQn);
 	HAL_NVIC_DisableIRQ(EXTI9_5_IRQn);
@@ -481,18 +490,25 @@ void autoCal(void)
     		         "\nPress TRIG to cancel or OK\n"
     		         "to continue...");
     res = waitforOKorCancel();
-
-    if(couplingPos != CPL_GND)
-    {
-      clearWaves();
-      return;
-    }
-
     if (res == false)
     {
         clearWaves();
     	return;
     }
+
+    if(couplingPos != CPL_GND)
+    {
+      showtextbox(&box,(char *)"ANALOG INPUT CALIBRATION\n"
+        		         "Make sure coupling switch is\n"
+        				 "set to GND.\n"
+        		         "\nPress OK to continue...");
+      waitforOKorCancel();
+      clearWaves();
+      return;
+    }
+
+    showtextbox(&box,(char *)"ANALOG INPUT CALIBRATION\n"
+      		         "Calibrating...");
 
 	//zero cal
 	//Set Trigger to NORM
@@ -611,56 +627,3 @@ void HAL_ADC_LevelOutOfWindowCallback(ADC_HandleTypeDef* hadc)
   }
 }
 
-/*
-void adc_irq(void)
-{
-	if (triggered)   //After Triggered
-	{
-		lCtr++;
-		if(lCtr == (NUM_SAMPLES/2))  //Fill up half the buffer with samples so Trigger point aligns at middle of sample buffer..
-		{
-			//Stop sampling by disabling timer?
-			//TODO
-			return;
-		}
-	}
-	//If sample index rolls over reset to zero and record start sampling time
-	if (sIndex == NUM_SAMPLES)
-	{
-		sIndex = 0;
-		snapMicros();
-	}
-
-	bitStore[sIndex] = GPIOB->IDR;  //Store GPIO
- 	ch1Capture[sIndex] = hadc1.Instance->DR;  //Store ADC (Resets IrQ)
-	sIndex++;  //Increase index
-
-}
-
-
-
-DMA IRQ
--------
-  Arm Threshold IRQ
-
-
-
-Setup capture
--------------  
-Setup DMA
-Setup Capture Timer
-Setup Holdeoff Timer
-Setup Trigger
-Activate Trigger
-
-
-uint16_t adc_trigger_level = 0;
-
-//Set The trigger level in ADC units. Can be - 2048 / + 2048
-void setupTriggerLevel(int16_t level)
-{
-  adc_trigger_level = level + 2048;
-
-}
-
-*/

@@ -66,7 +66,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		keepSampling = false;
 		break;
 	case DB7_Pin:
-		if (hold == false)
 			holdSampling = true;
 		break;
 	}
@@ -210,7 +209,6 @@ bool   pollControlSwitches(void)
     // long press reset parameter to default
     resetParam();
     change=true;    
-    DBG_PRINT("ENC LONG");
   }
 
   //V/Div Button
@@ -221,15 +219,16 @@ bool   pollControlSwitches(void)
     else       
       setFocusLabel(L_voltagerange);
     change=true;   
-    DBG_PRINT("VDIV SHORT");
   }
   else if (pos[VDIV_BUTTON] == LONGPRESS)
   {
       // toggle stats printing
-	  config.printVoltage = !config.printVoltage;
-      if (config.printVoltage)
-    	  config.printStats = false;
-      DBG_PRINT("VDIV LONG");
+	  if (config.markerMode == false)
+	  {
+		  config.printVoltage = !config.printVoltage;
+		  if (config.printVoltage)
+			  config.printStats = false;
+	  }
   }
   
 //Sec/Div Button
@@ -240,11 +239,10 @@ bool   pollControlSwitches(void)
     else   
       setFocusLabel(L_timebase);
     change=true;
-    DBG_PRINT("SECDIV SHORT");
   }
   else if (pos[SECDIV_BUTTON] == LONGPRESS)
   {
-      DBG_PRINT("SECDIV LONG");
+
   }
 
 //Trigger Button
@@ -255,43 +253,38 @@ bool   pollControlSwitches(void)
     else
       setFocusLabel(L_triggerLevel);
     change=true;
-    DBG_PRINT("TRIG SHORT");
   }
   else if (pos[TRIG_BUTTON] == LONGPRESS)
   {   
     togglePersistence();
-    DBG_PRINT("TRIG LONG");
   }
 
-//OK Button
-  if((holdSampling) && (hold == false))
+  if ((pos[OK_BUTTON] == SHORTPRESS) || holdSampling)
   {
+	  // toggle hold
+	  if (holdSampling)
+	  {
+	    holdSampling = false;
 	    hold = true;
-	    repaintLabels();
-	    change=true;
-	    DBG_PRINT("OIRQ REQ HOLD");
-  }
-  else if (pos[OK_BUTTON] == SHORTPRESS)
-  {      // toggle hold
-	if (holdSampling)
-	{
-		holdSampling = false;
-	}
-	else
-	{
-		hold = !hold;
-		repaintLabels();
-		change=true;
-		DBG_PRINT("OK SHORT");
-	}
+	  }
+	  else
+	  {
+	    hold = !hold;
+	  }
+      repaintLabels();
+	  change=true;
   }
   else if (pos[OK_BUTTON] == LONGPRESS)
   {
       // toggle stats printing
-	  config.printStats = !config.printStats;
-      if (config.printStats)
-    	  config.printVoltage = false;
-      DBG_PRINT("OK LONG");
+	  if (config.markerMode == false)
+	  {
+		  config.printStats = !config.printStats;
+		  if (config.printStats)
+			  config.printVoltage = false;
+		  if (hold)
+			  drawWaves();
+	  }
   }
   return change;
 }

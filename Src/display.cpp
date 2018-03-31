@@ -1073,7 +1073,7 @@ void initDisplay()
   tft_fillScreen(ILI9341_BLACK);
   banner();
 
-  delayMS(4000);
+  delayMS(3000);
 
   // and paint o-scope
    clearWaves();

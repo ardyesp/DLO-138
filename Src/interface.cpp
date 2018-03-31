@@ -60,8 +60,11 @@ void resetParam()
 		  repaintLabels();
 		  break;
 		case L_vPos1:
-		  //TODO add cursor control here???
 			config.markerMode = true;
+		    if (config.printStats)
+		    	  config.printStats = false;
+		    if (config.printVoltage)
+		    	  config.printVoltage = false;
 		  break;
 		case L_vPos2:
 		  changeDSize(D1);
