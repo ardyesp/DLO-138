@@ -168,10 +168,10 @@ void readInpSwitches()
 
 	if(cpl < 400)
 		couplingPos = CPL_GND;
-	else if(cpl < 2000)
-		couplingPos = CPL_DC;
-	else
+	else if(cpl > (4095-400))
 		couplingPos = CPL_AC;
+	else
+		couplingPos = CPL_DC;
 
 
 	// check if switch position changed from previous snap
