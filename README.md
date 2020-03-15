@@ -40,25 +40,34 @@ Following changes can be applied selectively, to get maximum functionality from 
 	
 # Flash binaries directly via serial interface
 
-When using Windows you can follow the guide from jyetech: https://jyetech.com/wp-content/uploads/2018/07/dso138-firmware-upgrade.pdf
-The guide uses the graphical programming tool provided by ST: https://www.st.com/en/development-tools/flasher-stm32.html
+When using Windows you can follow the guide from jyetech:
+https://jyetech.com/wp-content/uploads/2018/07/dso138-firmware-upgrade.pdf
+
+The guide uses the graphical programming tool provided by ST:
+https://www.st.com/en/development-tools/flasher-stm32.html
 
 ---
 
 When using Linux, you can use the open source command line tool stm32flash:
 
 Install stm32flash:
-`sudo apt-get install stm32flash`
+```
+sudo apt-get install stm32flash
+```
 
 Connect your TTL-UART-to-USB converter to the DSO138 and bridge jumpers J1 and J2 on the back of the PCB just like in the above manual.
 
 Unlock the flash of the STM32:
-`sudo stm32flash /dev/ttyUSB0 -k -b 115200`
-and
-`sudo stm32flash /dev/ttyUSB0 -u -b 115200`
+```
+sudo stm32flash /dev/ttyUSB0 -k -b 115200
+
+sudo stm32flash /dev/ttyUSB0 -u -b 115200
+```
 
 Flash new firmware:
-`sudo stm32flash /dev/ttyUSB0 -w binaries/DLO-138_switches_1.0.bin -b 115200`
+```
+sudo stm32flash /dev/ttyUSB0 -w binaries/DLO-138_switches_1.0.bin -b 115200
+```
 
 Remove the solder bridges on J1 and J2 and enjoy the alternative firmware on your DSO138.
  		
