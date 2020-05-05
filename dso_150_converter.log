@@ -1,0 +1,28 @@
+Project: dso_150
+Converter: Atollic TrueSTUDIO project converter
+Date: 20200504
+
+Unknown value type "" for id com.atollic.truestudio.as.general.incpath on tool com.atollic.truestudio.exe.debug.toolchain.as
+Unknown value type "" for id com.atollic.truestudio.gcc.symbols.defined on tool com.atollic.truestudio.exe.debug.toolchain.as
+Option com.atollic.truestudio.common_options.target.endianess is no longer supported
+Option com.atollic.truestudio.common_options.target.instr_set is no longer supported
+Unknown value type "" for id com.atollic.truestudio.common_options.target.interwork on tool com.atollic.truestudio.exe.debug.toolchain.gcc
+Option com.atollic.truestudio.common_options.target.endianess is no longer supported
+Option com.atollic.truestudio.common_options.target.instr_set is no longer supported
+No map found for id: com.atollic.truestudio.gcc.optimization.no_strict_aliasing
+Unknown value type "" for id com.atollic.truestudio.ld.libraries.list on tool com.atollic.truestudio.exe.debug.toolchain.ld
+Unknown value type "" for id com.atollic.truestudio.ld.libraries.searchpath on tool com.atollic.truestudio.exe.debug.toolchain.ld
+Unknown value type "" for id com.atollic.truestudio.ld.misc.genmapfile on tool com.atollic.truestudio.exe.debug.toolchain.ld
+Option com.atollic.truestudio.common_options.target.endianess is no longer supported
+Option com.atollic.truestudio.common_options.target.instr_set is no longer supported
+Unrecognized tool command 'arm-atollic-eabi-g++ -c' for tool id com.atollic.truestudio.exe.debug.toolchain.gpp
+Option com.atollic.truestudio.common_options.target.endianess is no longer supported
+Option com.atollic.truestudio.common_options.target.instr_set is no longer supported
+No map found for id: com.atollic.truestudio.gpp.optimization.no_strict_aliasing
+Unrecognized tool command 'arm-atollic-eabi-g++' for tool id com.atollic.truestudio.exe.debug.toolchain.ldcc
+Unknown value type "" for id com.atollic.truestudio.ldcc.misc.genmapfile on tool com.atollic.truestudio.exe.debug.toolchain.ldcc
+Option com.atollic.truestudio.common_options.target.endianess is no longer supported
+Option com.atollic.truestudio.common_options.target.instr_set is no longer supported
+Option com.atollic.truestudio.ldcc.general.static is no longer supported
+Unrecognized tool command 'arm-atollic-reports.jar' for tool id com.atollic.truestudio.exe.debug.toolchain.secoutput
+No map found for id: com.atollic.truestudio.exe.release
