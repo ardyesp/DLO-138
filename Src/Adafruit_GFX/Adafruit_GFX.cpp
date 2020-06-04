@@ -34,8 +34,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "Adafruit_GFX.hpp"
 #include <string.h>
 #include "glcdfont.c"
-#include "tiny_printf.h"
-#include <string.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 // Many (but maybe not all) non-AVR board installs define macros
 // for compatibility with existing PROGMEM-reading AVR code.
@@ -950,17 +951,15 @@ void tft_print(int num)
 void tft_printf(const char *fmt, ...)
 {
 	int length = 0;
+	char* buf;
 	va_list va;
 	va_start(va, fmt);
-	length = ts_formatlength(fmt, va);
+	length = snprintf(NULL, 0,fmt,va);
+	buf = (char*)malloc(length);
+	snprintf(buf, length,fmt,va);
+	tft_print((char*)buf);
+	free(buf);
 	va_end(va);
-	{
-		char buf[length];
-		va_start(va, fmt);
-		length = ts_formatstring(buf, fmt, va);
-		 tft_print(buf);
-		va_end(va);
-	}
 }
 
 

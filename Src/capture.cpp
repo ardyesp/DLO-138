@@ -27,7 +27,6 @@ extern uint8_t rangePos;
 extern uint8_t xZoom;
 
 uint16_t ch1Capture[NUM_SAMPLES] = {0};
-uint16_t bitStore[NUM_SAMPLES] = {0};
 
 volatile bool keepSampling = true;
 volatile bool holdSampling = false;
@@ -229,8 +228,7 @@ void startSampling(int16_t lDelay)
 	{
         while (keepSampling)
         {
-            ch1Capture[sIndex] = hadc1.Instance->DR;
-            bitStore[sIndex] = GPIOB->IDR;
+            ch1Capture[sIndex] = hadc1.Instance->DR || (GPIOB->IDR && 0xE000);
             sIndex++;
             if (sIndex == NUM_SAMPLES)
             {
@@ -251,8 +249,7 @@ void startSampling(int16_t lDelay)
         {
             while ((hadc1.Instance->SR & 0x02) == 0)
             {}
-            ch1Capture[sIndex] = hadc1.Instance->DR;
-            bitStore[sIndex] = GPIOB->IDR;
+            ch1Capture[sIndex] = hadc1.Instance->DR || (GPIOB->IDR && 0xE000);
             sIndex++;
             if (sIndex == NUM_SAMPLES)
             {
@@ -274,10 +271,8 @@ void startSampling(int16_t lDelay)
         	for (lCtr=0;lCtr<(GRID_WIDTH*xZoom);lCtr++)
         	{
         		ch1Capture[lCtr] = ch1Capture[lCtr+1];
-        		bitStore[lCtr] = bitStore[lCtr+1];
         	}
-            ch1Capture[GRID_WIDTH*xZoom] = hadc1.Instance->DR;
-            bitStore[GRID_WIDTH*xZoom] = GPIOB->IDR;
+            ch1Capture[GRID_WIDTH*xZoom] =  hadc1.Instance->DR || (GPIOB->IDR && 0xE000);
             sIndex = GRID_WIDTH*xZoom;
             goto exit;;
         }
@@ -286,8 +281,7 @@ void startSampling(int16_t lDelay)
     {
         while (keepSampling)
         {
-            ch1Capture[sIndex] = hadc1.Instance->DR;
-            bitStore[sIndex] = GPIOB->IDR;
+        	ch1Capture[sIndex] = hadc1.Instance->DR || (GPIOB->IDR && 0xE000);
             sIndex++;
             if (sIndex == NUM_SAMPLES)
             {
@@ -404,10 +398,10 @@ void printSample(uint16_t k, float timeStamp)
 {
 	printf("%d\t",k);
 	printf("%f\t",timeStamp);
-    printf("%d\t",ch1Capture[k] - config.zeroVoltageA1);
-	printf("%d\t",(bitStore[k] & 0x2000) ? 1 : 0);
-    printf("%d\t",(bitStore[k] & 0x4000) ? 1 : 0);
-	printf("%d\t",(bitStore[k] & 0x8000) ? 1 : 0);
+    printf("%d\t",(ch1Capture[k] && 0x1FFF) - config.zeroVoltageA1);
+	printf("%d\t",(ch1Capture[k] & 0x2000) ? 1 : 0);
+    printf("%d\t",(ch1Capture[k] & 0x4000) ? 1 : 0);
+	printf("%d\t",(ch1Capture[k] & 0x8000) ? 1 : 0);
 	
 	if(triggered && (tIndex == k))
 		printf("\t<--TRIG");
