@@ -15,7 +15,7 @@
 
 // analog and digital samples storage depth
 // 
-#define NUM_SAMPLES   3072 
+#define NUM_SAMPLES   (1024 * 6)
 
 // display colours
 #define AN_SIGNAL1    ILI9341_YELLOW

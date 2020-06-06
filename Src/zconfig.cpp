@@ -16,8 +16,7 @@
 #define PAGE_SETTING_COUNT 4
 
 
-extern uint16_t ch1Capture[NUM_SAMPLES];  //6144 bytes
-extern uint16_t bitStore[NUM_SAMPLES];    //6144 byte -> total of 12288 bytes = 12 Kb
+extern uint16_t ch1Capture[NUM_SAMPLES];
 extern volatile bool hold;
 extern I2C_HandleTypeDef hi2c2;  //External EEPROM
 
@@ -334,8 +333,6 @@ void loadWaveform()
 
   if (false == EE_LL_Read(PAGE_WAVEFORM_START,0,sizeof(ch1Capture),(uint8_t*)ch1Capture))
     printf("Error reading Analog data from EEPROM\n");
-  if (false == EE_LL_Read(PAGE_WAVEFORM_START+6,0,sizeof(bitStore),(uint8_t*)bitStore))
-    printf("Error reading Digital data from EEPROM\n");
   //Force display refresh
   drawWaves();
 }
@@ -348,8 +345,6 @@ void saveWaveform(void)
 
   if (false == EE_LL_Write(PAGE_WAVEFORM_START,0,sizeof(ch1Capture),(uint8_t*)ch1Capture))
     printf("Error writing Analog data to EEPROM\n");
-  if (false == EE_LL_Write(PAGE_WAVEFORM_START+6,0,sizeof(bitStore),(uint8_t*)bitStore))
-    printf("Error writing Digital data to EEPROM\n");
 
 }
 
