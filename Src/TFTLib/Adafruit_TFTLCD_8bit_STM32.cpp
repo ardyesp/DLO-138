@@ -14,10 +14,12 @@ uint32_t opReg;
 
 #define WR_STROBE    { WR_ACTIVE; WR_IDLE; }
 
+extern  void delayUS(uint32_t us); // ?
+
 
 uint32_t readReg32(uint8_t r);
 uint16_t readReg(uint8_t r);
-
+static  bool isST7789=false;
 
 /*****************************************************************************/
 void ili9341_begin(void)
@@ -35,13 +37,17 @@ void ili9341_begin(void)
 
   writeRegister8(ILI9341_SOFTRESET, 0);
   delayMS(50);
+
+  int displayId=readReg32(0x04) & 0xffff; //0x9341 for ili9341 ?
+  isST7789=( displayId!=0x9341);
+
   writeRegister8(ILI9341_DISPLAYOFF, 0);
 
   writeRegister8(ILI9341_POWERCONTROL1, 0x23);
   writeRegister8(ILI9341_POWERCONTROL2, 0x10);
   writeRegister16(ILI9341_VCOMCONTROL1, 0x2B2B);
   writeRegister8(ILI9341_VCOMCONTROL2, 0xC0);
-  writeRegister8(ILI9341_MEMCONTROL, ILI9341_MADCTL_MY | ILI9341_MADCTL_BGR);
+  writeRegister8(ILI9341_MADCTL , ILI9341_MADCTL_MY | ILI9341_MADCTL_BGR);
   writeRegister8(ILI9341_PIXELFORMAT, 0x55);
   writeRegister16(ILI9341_FRAMECONTROL, 0x001B);
 
@@ -281,6 +287,8 @@ void setRotation(uint8_t x)
 {
   //perform hardware-specific rotation operations...
    uint16_t t = 0;
+ 
+  if(isST7789) x^=1; // Landscape & portrait are inverted compared to ILI
 
    switch (x)
    {

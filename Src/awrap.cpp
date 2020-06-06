@@ -10,7 +10,7 @@ void delayMS(uint32_t ms)
 
 
 #define STM32_DELAY_US_MULT (SystemCoreClock / 6000000U)
-inline void delayUS(uint32_t us)
+/*inline*/ void delayUS(uint32_t us)
 {
     us *= STM32_DELAY_US_MULT;
 
