@@ -37,6 +37,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "tiny_printf.h"
+#include <string.h>
 
 // Many (but maybe not all) non-AVR board installs define macros
 // for compatibility with existing PROGMEM-reading AVR code.
@@ -954,9 +956,9 @@ void tft_printf(const char *fmt, ...)
 	char* buf;
 	va_list va;
 	va_start(va, fmt);
-	length = snprintf(NULL, 0,fmt,va);
+	length = ts_formatlength(fmt, va);
 	buf = (char*)malloc(length);
-	snprintf(buf, length,fmt,va);
+	ts_formatstring(buf, fmt, va);
 	tft_print((char*)buf);
 	free(buf);
 	va_end(va);

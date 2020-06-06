@@ -96,8 +96,13 @@ void setTestPin(uint8_t mode)
       case TESTMODE_PULSE:
           // start 1KHz square wave
           setPinMode(TESTSIG_GPIO_Port,TESTSIG_Pin,GPIO_MODE_AF_PP,GPIO_NOPULL,GPIO_SPEED_FREQ_LOW);
+#ifdef OVERCLOCK
+          timerSetPeriod(&htim3,500);  //TODO Why?????
+          timerSetPWM(&htim3,TIM_CHANNEL_2,28015);
+#else
           timerSetPeriod(&htim3,1000);
           timerSetPWM(&htim3,TIM_CHANNEL_2,17850);
+#endif
       break;
   }  
 }
@@ -166,9 +171,9 @@ void readInpSwitches()
 
 	cpl = (uint16_t)HAL_ADC_GetValue(&hadc2);
 
-	if(cpl < 400)
+	if(cpl < 1000)
 		couplingPos = CPL_GND;
-	else if(cpl > (4095-400))
+	else if(cpl > (4095-1000))
 		couplingPos = CPL_AC;
 	else
 		couplingPos = CPL_DC;

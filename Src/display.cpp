@@ -22,7 +22,7 @@ bool paintLabels = false;  // repaint the labels on screen in draw loop
 
 const char* cplNames[] = {"GND","AC","DC"};
 const char* functionNames[] = {"SERIAL","LOAD","SAVE","AUTOCAL"};
-const char* zoomNames[] = {"x1","x2","x4","x8"};
+const char* zoomNames[] = {"x1","x2","x4","x8","x16"};
 const char* trigModeNames[] = {"AUTO","NORM","SNGL"};
 const char* trigSourceNames[] = {"A1","D1","D2","D3"};
 const char* rngNames[] = {"20V","10V","5V","2V","1V","0.5V","0.2V","0.1V","50mV","20mV","10mV","5mV"};
@@ -315,34 +315,34 @@ void clearNDrawSignals()
 			j = 0;
 
 		// erase old line segment 
-    if(wavesOld[D3])
-    {
-      val1 = (bitOld[i] & 0b1000) ? dHeight/config.dsize[D3-1] : 0;
-      val2 = (bitOld[i + 1] & 0b1000) ? dHeight/config.dsize[D3-1] : 0;
-      // clear the line segment
-      transposedPt1 = GRID_HEIGHT + vOffset + yCursorsOld[D3] - val1;
-      transposedPt2 = GRID_HEIGHT + vOffset + yCursorsOld[D3] - val2;
-      plotLineSegment(transposedPt1, transposedPt2, i, fade_color(DG_SIGNAL3)); 
-    }
+		if(wavesOld[D3])
+		{
+		  val1 = (bitOld[i] & 0x80) ? dHeight/config.dsize[D3-1] : 0;
+		  val2 = (bitOld[i + 1] & 0x80) ? dHeight/config.dsize[D3-1] : 0;
+		  // clear the line segment
+		  transposedPt1 = GRID_HEIGHT + vOffset + yCursorsOld[D3] - val1;
+		  transposedPt2 = GRID_HEIGHT + vOffset + yCursorsOld[D3] - val2;
+		  plotLineSegment(transposedPt1, transposedPt2, i, fade_color(DG_SIGNAL3));
+		}
 
 		if(wavesOld[D2])
 		{
-			val1 = (bitOld[i] & 0b0100) ? dHeight/config.dsize[D2-1] : 0;
-			val2 = (bitOld[i + 1] & 0b0100) ? dHeight/config.dsize[D2-1] : 0;
+			val1 = (bitOld[i] & 0x40) ? dHeight/config.dsize[D2-1] : 0;
+			val2 = (bitOld[i + 1] & 0x40) ? dHeight/config.dsize[D2-1] : 0;
 			// clear the line segment
 			transposedPt1 = GRID_HEIGHT + vOffset + yCursorsOld[D2] - val1;
 			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsOld[D2] - val2;
-      plotLineSegment(transposedPt1, transposedPt2, i, fade_color(DG_SIGNAL2)); 
+			plotLineSegment(transposedPt1, transposedPt2, i, fade_color(DG_SIGNAL2));
 		}
-   
+
 		if(wavesOld[D1])
 		{
-			val1 = (bitOld[i] & 0b0010) ? dHeight/config.dsize[D1-1] : 0;
-			val2 = (bitOld[i + 1] & 0b0010) ? dHeight/config.dsize[D1-1] : 0;
+			val1 = (bitOld[i] & 0x20) ? dHeight/config.dsize[D1-1] : 0;
+			val2 = (bitOld[i + 1] & 0x20) ? dHeight/config.dsize[D1-1] : 0;
 			// clear the line segment
 			transposedPt1 = GRID_HEIGHT + vOffset + yCursorsOld[D1] - val1;
 			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsOld[D1] - val2;
-      plotLineSegment(transposedPt1, transposedPt2, i, fade_color(DG_SIGNAL1)); 
+			plotLineSegment(transposedPt1, transposedPt2, i, fade_color(DG_SIGNAL1));
 		}
 
 		if(wavesOld[A1])
@@ -354,37 +354,38 @@ void clearNDrawSignals()
 			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsOld[A1] - val2;
 			plotLineSegment(transposedPt1, transposedPt2, i, fade_color(AN_SIGNAL1)); 
 		}
-  	
+
 		// draw new segments
 		if(wavesSnap[D3])
 		{
-			val1 = (ch1Capture[j] & 0b10000000) ? dHeight/config.dsize[D3-1] : 0;
-			val2 = (ch1Capture[jn] & 0b10000000) ? dHeight/config.dsize[D3-1] : 0;
+			val1 = (ch1Capture[j] & 0x8000) ? dHeight/config.dsize[D3-1] : 0;
+			val2 = (ch1Capture[jn] & 0x8000) ? dHeight/config.dsize[D3-1] : 0;
 			bitOld[i] &= 0b0111;
-			bitOld[i] |= (ch1Capture[j]>>8) & 0b1000;
+			bitOld[i] |= (ch1Capture[j]>>8) & 0x80;
 			// draw the line segment
 			transposedPt1 = GRID_HEIGHT + vOffset + yCursorsSnap[D3] - val1;
 			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsSnap[D3] - val2;
 			plotLineSegment(transposedPt1, transposedPt2, i, DG_SIGNAL3);
 		}
 
-    if(wavesSnap[D2])
-    {
-      val1 = (ch1Capture[j] & 0b01000000) ? dHeight/config.dsize[D2-1] : 0;
-      val2 = (ch1Capture[jn] & 0b01000000) ? dHeight/config.dsize[D2-1] : 0;
-      bitOld[i] &= 0b10111;
-      bitOld[i] |= (ch1Capture[j]>>8) & 0b0100;
-      // draw the line segment
-      transposedPt1 = GRID_HEIGHT + vOffset + yCursorsSnap[D2] - val1;
-      transposedPt2 = GRID_HEIGHT + vOffset + yCursorsSnap[D2] - val2;
-      plotLineSegment(transposedPt1, transposedPt2, i, DG_SIGNAL2);
-    }    
+		if(wavesSnap[D2])
+		{
+		  val1 = (ch1Capture[j] & 0x4000) ? dHeight/config.dsize[D2-1] : 0;
+		  val2 = (ch1Capture[jn] & 0x4000) ? dHeight/config.dsize[D2-1] : 0;
+		  bitOld[i] &= 0b10111;
+		  bitOld[i] |= (ch1Capture[j]>>8) & 0x40;
+		  // draw the line segment
+		  transposedPt1 = GRID_HEIGHT + vOffset + yCursorsSnap[D2] - val1;
+		  transposedPt2 = GRID_HEIGHT + vOffset + yCursorsSnap[D2] - val2;
+		  plotLineSegment(transposedPt1, transposedPt2, i, DG_SIGNAL2);
+		}
+
 		if(wavesSnap[D1])
 		{
-			val1 = (ch1Capture[j] & 0b00100000) ? dHeight/config.dsize[D1-1] : 0;
-			val2 = (ch1Capture[jn] & 0b00100000) ? dHeight/config. dsize[D1-1] : 0;
+			val1 = (ch1Capture[j] & 0x2000) ? dHeight/config.dsize[D1-1] : 0;
+			val2 = (ch1Capture[jn] & 0x2000) ? dHeight/config. dsize[D1-1] : 0;
 			bitOld[i] &= 0b1101;
-			bitOld[i] |= (ch1Capture[j]>>8) & 0b0010;
+			bitOld[i] |= (ch1Capture[j]>>8) & 0x20;
 			// draw the line segment
 			transposedPt1 = GRID_HEIGHT + vOffset + yCursorsSnap[D1] - val1;
 			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsSnap[D1] - val2;
@@ -393,9 +394,9 @@ void clearNDrawSignals()
 		
 		if(wavesSnap[A1])
 		{
-			val1 = (((ch1Capture[j] && 0x0FFF) - zeroVoltageA1Snap) * GRID_HEIGHT)/ADC_2_GRID;
-			val2 = (((ch1Capture[jn] && 0x0FFF) - zeroVoltageA1Snap) * GRID_HEIGHT)/ADC_2_GRID;
-			ch1Old[i] = (ch1Capture[j] && 0x0FFF) - zeroVoltageA1Snap;
+			val1 = (((ch1Capture[j] & 0x0FFF) - zeroVoltageA1Snap) * GRID_HEIGHT)/ADC_2_GRID;
+			val2 = (((ch1Capture[jn] & 0x0FFF) - zeroVoltageA1Snap) * GRID_HEIGHT)/ADC_2_GRID;
+			ch1Old[i] = (ch1Capture[j] & 0x0FFF) - zeroVoltageA1Snap;
 			// draw the line segment
 			transposedPt1 = GRID_HEIGHT + vOffset + yCursorsSnap[A1] - val1;
 			transposedPt2 = GRID_HEIGHT + vOffset + yCursorsSnap[A1] - val2;
@@ -772,20 +773,20 @@ void calculateStats()
     if(j == NUM_SAMPLES)
       j = 0;
 
-		val = (ch1Capture[j] && 0x0FFF) - config.zeroVoltageA1;
+		val = (ch1Capture[j] & 0x0FFF) - config.zeroVoltageA1;
 		if(Vmax < val)
 			Vmax = val;
 		if(Vmin > val)
 			Vmin = val;
 
 		sumSamples += val;
-		freqSumSamples += (ch1Capture[j]  && 0x0FFF);
+		freqSumSamples += (ch1Capture[j]  & 0x0FFF);
 		sumSquares += (val * val);
 	}
 
 	// find out frequency
 	uint16_t fVavr = freqSumSamples/i;
-	bool dnWave = ((ch1Capture[sIndex] && 0x0FFF) < fVavr - 10);
+	bool dnWave = ((ch1Capture[sIndex] & 0x0FFF) < fVavr - 10);
 	bool firstOne = true;
 	uint16_t cHigh = 0;
 
@@ -805,7 +806,7 @@ void calculateStats()
       j = 0;
 
 		// mark the points where wave transitions the average value
-		if(dnWave && ((ch1Capture[j] && 0x0FFF) > fVavr + 10))
+		if(dnWave && ((ch1Capture[j] & 0x0FFF) > fVavr + 10))
 		{
 			if(!firstOne)
 			{
@@ -819,7 +820,7 @@ void calculateStats()
 			cHigh = i-1;
 		}
 
-		if(!dnWave && ((ch1Capture[j] && 0x0FFF) < fVavr - 10))
+		if(!dnWave && ((ch1Capture[j] & 0x0FFF) < fVavr - 10))
 		{
 			if(!firstOne)
 			{
@@ -862,7 +863,7 @@ void calculateSimpleStats()
   static uint8_t arrayptr = 0;
 
   //dd last sample to array
-  sample_buf[arrayptr] = (ch1Capture[sIndex] && 0x0FFF) - config.zeroVoltageA1;
+  sample_buf[arrayptr] = (ch1Capture[sIndex] & 0x0FFF) - config.zeroVoltageA1;
   arrayptr++;
   if (arrayptr == FLOAT_AVG_BUFSIZE)
 	  arrayptr = 0;

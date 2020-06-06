@@ -6,6 +6,9 @@
 
 #include <stdint.h>
 
+#define OVERCLOCK
+//#define IS_ST7789
+
 #define FIRMWARE_VERSION "3.1"
 #define FIRMWARE_TARGET "C++ DSO-150"
 #define FIRMWARE_INFO "DSO-150 Hardware by JYE-Tech"

@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 
+
 void setTriggerSourceAndDir(uint8_t source,uint8_t dir);
 void sampleWaves(bool wTimeout);
 void startScanTimeout(int16_t mSec);

@@ -354,7 +354,7 @@ void decrementTT()
 void incrementZoom()
 // ------------------------
 {
-  if(config.zoomFactor == ZOOM_X8)
+  if(config.zoomFactor == ZOOM_X16)
     return;
   
   setZoomFactor(config.zoomFactor+1);
@@ -391,7 +391,10 @@ void setZoomFactor(uint8_t zoomF)
         break;    
      case ZOOM_X8:
         xZoom = 8;
-        break;                                      
+        break;
+     case ZOOM_X16:
+        xZoom = 16;
+        break;
   }
   changeXCursor((((NUM_SAMPLES)-GRID_WIDTH)/2)/xZoom);
   repaintLabels();

@@ -5,6 +5,7 @@
 // MIT license
 
 #include "Adafruit_TFTLCD_8bit_STM32.hpp"
+#include "../global.h"
 
 //These macros enable/disable external interrupts so we can use the display together with buttons/encoder on the same lines...
 uint32_t intReg;
@@ -38,8 +39,13 @@ void ili9341_begin(void)
   writeRegister8(ILI9341_SOFTRESET, 0);
   delayMS(50);
 
-  int displayId=readReg32(0x04) & 0xffff; //0x9341 for ili9341 ?
-  isST7789=( displayId!=0x9341);
+
+  //TODO readback doesn't seem to work...
+  //int displayId=readReg32(0x04) & 0xffff; //0x9341 for ili9341 ?
+  //isST7789=( displayId!=0x9341);
+#ifdef IS_ST7789
+  isST7789 = true;
+#endif
 
   writeRegister8(ILI9341_DISPLAYOFF, 0);
 
