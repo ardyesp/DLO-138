@@ -294,7 +294,11 @@ void setRotation(uint8_t x)
   //perform hardware-specific rotation operations...
    uint16_t t = 0;
  
-  if(isST7789) x^=1; // Landscape & portrait are inverted compared to ILI
+  if(isST7789)
+  {
+     x^=1; // Landscape & portrait are inverted compared to ILI
+     x = (x + 2)%4; //And Rotated by 180 Deg?
+  }
 
    switch (x)
    {
