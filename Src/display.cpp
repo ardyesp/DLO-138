@@ -502,12 +502,12 @@ void drawLabels()
 		tft_print((char*)"RUN");
 	}
 
- //Draw Zoom Label
-  tft_setTextColor(ILI9341_GREEN, ILI9341_BLACK);
-  tft_setCursor(65, 4);
-  if(currentFocus == L_zoom)
+    //Draw Zoom Label
+    tft_setTextColor(ILI9341_GREEN, ILI9341_BLACK);
+    tft_setCursor(65, 4);
+    if(currentFocus == L_zoom)
     tft_drawRect(60, 0, 25, vOffset, ILI9341_WHITE);
-  tft_print((char*)zoomNames[config.zoomFactor]);
+    tft_print((char*)zoomNames[config.zoomFactor]);
 
 	// draw x-window at top, range = 200px
 	// -----------------
@@ -678,7 +678,7 @@ void drawStats()
 		clearStats = true;
 	}
 	// draw stat labels
-	tft_setTextColor(ILI9341_RED, ILI9341_BLACK);
+	tft_setTextColor(ILI9341_RED, ILI9341_RED);
 
 	tft_setCursor(25, 20);
 	tft_print((char*)"Freq:");
@@ -701,7 +701,7 @@ void drawStats()
 	tft_print((char*)"Vrms:");
 	
 	// print new stats
-	tft_setTextColor(ILI9341_WHITE, ILI9341_BLACK);
+	tft_setTextColor(ILI9341_WHITE, ILI9341_WHITE);
 
 	if(clearStats)
 		tft_writeFillRect(65, 20, 55, 50, ILI9341_BLACK);
@@ -968,41 +968,39 @@ void draw_markerstats(void)
 	td = t2 -t1;
 
 	// draw stat labels
-	tft_setTextColor(ILI9341_RED, ILI9341_BLACK);
-	tft_setCursor(25, 20);
+	tft_setTextColor(ILI9341_RED, ILI9341_RED);
+	tft_setCursor(20, 20);
 	tft_print((char*)"T1:");
-	tft_setCursor(25, 30);
+	tft_setCursor(20, 30);
 	tft_print((char*)"T2:");
-	tft_setCursor(25, 40);
+	tft_setCursor(20, 40);
 	tft_print((char*)"Td:");
 
-	tft_setCursor(230, 20);
+	tft_setCursor(240, 20);
 	tft_print((char*)"V1:");
-	tft_setCursor(230, 30);
+	tft_setCursor(240, 30);
 	tft_print((char*)"V2:");
-	tft_setCursor(230, 40);
+	tft_setCursor(240, 40);
 	tft_print((char*)"Vd:");
 
 	//clear stats
-	tft_writeFillRect(265, 20, GRID_WIDTH + hOffset - 265 - 1, 50, ILI9341_BLACK);
-	tft_writeFillRect(52, 20, 50, 50, ILI9341_BLACK);
+	tft_writeFillRect(265, 20, GRID_WIDTH + hOffset - 265 - 1, 30, ILI9341_BLACK);
+	tft_writeFillRect(47, 20, 50, 30, ILI9341_BLACK);
 
 	// print new stats
-	tft_setTextColor(ILI9341_WHITE, ILI9341_BLACK);
+	tft_setTextColor(ILI9341_WHITE, ILI9341_WHITE);
 	drawVoltage(v1, 20, mvPos);
 	drawVoltage(v2, 30, mvPos);
 	drawVoltage(vd, 40, mvPos);
 
 
-	tft_setCursor(52, 20);
+	tft_setCursor(47, 20);
 	tft_print(t1);tft_print((char*)" ms");
-	tft_setCursor(52, 30);
+	tft_setCursor(47, 30);
 	tft_print(t2); tft_print((char*)" ms");
-	tft_setCursor(52, 40);
+	tft_setCursor(47, 40);
 	tft_print(td); tft_print((char*)" ms");
-
 }
-
 
 
 // ------------------------
@@ -1013,7 +1011,7 @@ void drawVoltageLarge(float volt, int y,uint16_t col)
   int numDigits = 1;
   int lVolt = volt;
   
-  tft_setTextColor(col, ILI9341_BLACK);
+  tft_setTextColor(col, col);
 
   // is there a negative sign at front
   if(volt < 0)  
@@ -1125,14 +1123,11 @@ tft_print((char*)"GNU GENERAL PUBLIC LICENSE Version 3");
 }
 
 
-
 void drawtextbox(t_tb_data *pTextbox)
 {
-
 	  tft_drawRect(pTextbox->x, pTextbox->y, pTextbox->w, pTextbox->h, ILI9341_WHITE);
 	  tft_writeFillRect(pTextbox->x+1, pTextbox->y+1, pTextbox->w-2, pTextbox->h-2, ILI9341_BLACK);
 }
-
 
 
 void showtextbox(t_tb_data *pTextbox,char* text)
