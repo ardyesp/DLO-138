@@ -86,7 +86,7 @@ GFXfont *gfxFont;
 #define abs(a) ((a)<0?-(a):a)
 #endif
 
-void tft_begin(void)
+uint16_t tft_begin(void)
 {
      WIDTH = TFTWIDTH;
      HEIGHT = TFTHEIGHT;
@@ -98,7 +98,7 @@ void tft_begin(void)
     textcolor = textbgcolor = 0xFFFF;
     wrap      = true;
     gfxFont   = NULL;
-    ili9341_begin();
+    return ili9341_begin();
 }
 
 // Bresenham's algorithm - thx wikpedia

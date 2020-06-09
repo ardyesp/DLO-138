@@ -17,7 +17,7 @@ typedef struct tb_data{
     uint16_t h;
 }t_tb_data;
 
-void tft_begin(void);
+uint16_t tft_begin(void);
 
 // This MUST be defined by the subclass:
 void tft_drawPixel(int16_t x, int16_t y, uint16_t color);

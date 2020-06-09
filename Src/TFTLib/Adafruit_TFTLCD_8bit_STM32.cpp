@@ -10,6 +10,7 @@
 //These macros enable/disable external interrupts so we can use the display together with buttons/encoder on the same lines...
 uint32_t intReg;
 uint32_t opReg;
+uint16_t dispControllerId = 0;
 #define CS_ACTIVE  { intReg = EXTI->IMR;opReg = TFT_DATA->ODR;EXTI->IMR = 0 ; TFT_DATA->CRL = 0x33333333 ;GPIOC->BRR  = TFT_CS_MASK; }
 #define CS_IDLE    { TFT_DATA->ODR = opReg;TFT_DATA->CRL = 0x88888888; GPIOC->BSRR = TFT_CS_MASK ; EXTI->IMR = intReg; }
 
@@ -20,10 +21,10 @@ extern  void delayUS(uint32_t us); // ?
 
 uint32_t readReg32(uint8_t r);
 uint16_t readReg(uint8_t r);
-static  bool isST7789=false;
+
 
 /*****************************************************************************/
-void ili9341_begin(void)
+uint16_t ili9341_begin(void)
 {
   //Set command lines as output
   //Do this in General Setup...
@@ -41,11 +42,7 @@ void ili9341_begin(void)
 
 
   //TODO readback doesn't seem to work...
-  //int displayId=readReg32(0x04) & 0xffff; //0x9341 for ili9341 ?
-  //isST7789=( displayId!=0x9341);
-#ifdef IS_ST7789
-  isST7789 = true;
-#endif
+  dispControllerId = (uint16_t)(readReg32(0x04) & 0xffff);
 
   writeRegister8(ILI9341_DISPLAYOFF, 0);
 
@@ -63,6 +60,8 @@ void ili9341_begin(void)
   delayMS(120);
   writeRegister8(ILI9341_DISPLAYON, 0);
   setAddrWindow(0, 0, TFTWIDTH-1, TFTHEIGHT-1);
+
+  return dispControllerId;
 }
 
 
@@ -293,12 +292,18 @@ void setRotation(uint8_t x)
 {
   //perform hardware-specific rotation operations...
    uint16_t t = 0;
+
+
+   if ( dispControllerId==0x8552)
+   {
+	   x = (x+1) % 4; // Landscape & portrait are inverted compared to ILI
+   }
+
+
+//#ifdef IS_ST7789
+//   x = (x+1) % 4; // Landscape & portrait are inverted compared to ILI
+//#endif
  
-  if(isST7789)
-  {
-     x^=1; // Landscape & portrait are inverted compared to ILI
-     x = (x + 2)%4; //And Rotated by 180 Deg?
-  }
 
    switch (x)
    {

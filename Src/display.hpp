@@ -26,7 +26,7 @@ enum {L_voltagerange,L_timebase,L_function, L_triggerType, L_triggerSource, L_tr
 void setFocusLabel(uint8_t label);
 void focusNextLabel();
 void repaintLabels();
-void initDisplay();
+uint16_t initDisplay();
 void draw_markers();
 void drawWaves();
 void clearWaves();

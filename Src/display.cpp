@@ -1066,14 +1066,15 @@ void clearStats()
 
 
 // ------------------------
-void initDisplay()
+uint16_t initDisplay()
 // ------------------------
 {
 
   //Contrary to the Schematic for the DSO-150 that lists a
   //S95417 display module which should contain according to the
   //datasheet an ILI9325 IT IS ACTUALLY A ILI9341
-  tft_begin();
+  uint16_t disp = tft_begin();
+
 
   tft_setRotation(LANDSCAPE);
   tft_fillScreen(ILI9341_BLACK);
@@ -1083,6 +1084,8 @@ void initDisplay()
 
   // and paint o-scope
    clearWaves();
+
+   return disp;
 }
 
 

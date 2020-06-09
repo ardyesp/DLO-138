@@ -163,7 +163,7 @@
 #define HX8347G_MEMACCESS          0x16
 
 
-void     ili9341_begin(void);
+uint16_t ili9341_begin(void);
 void     ili9341_reset(void);
 void     ili9341_setLR(void);
 void     drawPixel(int16_t x, int16_t y, uint16_t color);
