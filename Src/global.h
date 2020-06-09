@@ -9,7 +9,8 @@
 #define OVERCLOCK
 //#define IS_ST7789
 
-#define FIRMWARE_VERSION "3.2"
+#define FIRMWARE_VERSION_MAJOR	3
+#define FIRMWARE_VERSION_MINOR	3
 #define FIRMWARE_TARGET "C++ DSO-150"
 #define FIRMWARE_INFO "DSO-150 Hardware by JYE-Tech"
 

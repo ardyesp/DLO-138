@@ -12,8 +12,6 @@
 
 #define PAGE_WAVEFORM_START 111
 #define PAGE_WAVEFORM_COUNT 12
-#define PAGE_SETTING_START 123
-#define PAGE_SETTING_COUNT 4
 
 
 extern uint16_t ch1Capture[NUM_SAMPLES];
@@ -30,6 +28,12 @@ const float adcMultiplierBase[] = {0.2000,0.1000,0.0500, 0.0200, 0.0100, 0.0050,
 //- when we write we increase a counter in the header
 //- when we load we look for the last written header and load that
 //- Unless one of them is 255 and the next is 0, thne we use the one with 0 (Rollover...)
+
+uint16_t makeVersion(void)
+{
+	return ((uint16_t)FIRMWARE_VERSION_MAJOR<<8) + (uint16_t)FIRMWARE_VERSION_MINOR;
+}
+
 
 void autoSafe(void)
 {
@@ -59,6 +63,26 @@ void loadConfig(bool reset)
 	{
 		//Load Defaults
 		EE_Reads(0,sizeof(t_config),(uint32_t*)&config);
+		//Marker Check
+		if ((config.configID[0] != 'D') || (config.configID[1] = 'S') || (config.configID[2] = 'O') || (config.configID[3] = 'S'))
+		{
+			DBG_PRINT("No Config ID, creating defaults\n");
+			//Create defaults
+		    loadDefaults();
+			formatSaveConfig();
+		}
+		else
+		{
+			//Check FW version
+			if (config.configFWversion != makeVersion())
+			{
+				DBG_PRINT("Wrong Firmware ID, creating defaults\n");
+				//Create defaults
+			    loadDefaults();
+				formatSaveConfig();
+			}
+		}
+
 		oldConfig = config;
 	}
 
@@ -82,6 +106,12 @@ void loadDefaults()
 {
     uint16_t ii;
 	DBG_PRINT("Loading defaults...\n");
+
+	config.configID[0] = 'D';
+	config.configID[1] = 'S';
+	config.configID[2] = 'O';
+	config.configID[3] = 'S';
+	config.configFWversion = makeVersion();
 
 	setTimeBase(T30US);
     setVoltageRange(RNG_5V);

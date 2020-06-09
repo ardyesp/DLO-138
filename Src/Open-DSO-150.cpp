@@ -13,9 +13,8 @@ void dsosetup()
 // ------------------------
 {
 	DBG_PRINT(FIRMWARE_TARGET);
-	DBG_PRINT(" Ver:");
-	DBG_PRINT(FIRMWARE_VERSION);
-	DBG_PRINT("\n");
+	DBG_PRINT("Ver:%d.%d\n",(uint16_t)FIRMWARE_VERSION_MAJOR,(uint16_t)FIRMWARE_VERSION_MINOR);
+
 
 	// set digital and analog stuff
 	initIO();

@@ -8,7 +8,8 @@
 
 
 typedef struct{
-	uint8_t configCounter;   //Used for wear leveling so we can write this to multiple pages....
+	uint8_t configID[4];   //Config ID has to be DSOS
+	uint16_t configFWversion;
 	uint8_t currentTimeBase;
 	uint8_t currentVoltageRange;
 	uint8_t triggerType;

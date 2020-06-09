@@ -5,6 +5,7 @@
 #include "awrap.hpp"
 #include "capture.hpp"
 #include "io.hpp"
+#include "global.h"
 
 
 extern t_config config;
@@ -1115,7 +1116,14 @@ tft_print((char*)FIRMWARE_INFO);
 
 tft_setCursor(30, 140);
 tft_print((char*)"Firmware version: ");
-tft_print((char*)FIRMWARE_VERSION);
+tft_print((char*)FIRMWARE_VERSION_MAJOR);
+tft_print((char*)".");
+tft_print((char*)FIRMWARE_VERSION_MINOR);
+
+tft_setCursor(30, 160);
+tft_print((char*)"Sample Depth: ");
+tft_print((char*)NUM_SAMPLES);
+
 
 tft_setTextSize(1);
 tft_setCursor(30, 210);
