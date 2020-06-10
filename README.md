@@ -1,54 +1,116 @@
-# DLO-138
-An open source firmware for DSO-138 Oscilloscope. 
-![Photo](https://github.com/ardyesp/DLO-138/blob/master/pics/pic4.png)
+# Open DSO-150
 
-DSO-138 is an excellent piece of hardware based on ARM Cortex M3 core STM32F103 processor and sufficient for most beginner users. The stock firmware, while quite responsive, can use a few improvements. The main shortcoming which prompted the development of DLO-138 firmware is the inability to get waveform data into a computer for further analysis and the lack of a second channel. Engineers troubleshooting hardware issues need to mark reference points on waveform so having another analog or digital channel can greatly improve analysis. This firmware hopes to improve on these issues.
+Fully open source firmware for JYETECH DSO-150
+https://www.jyetech.com/Products/LcdScope/e150.php
+
+## Complete rewrite of DSO-150 Firmware
+- No longer DSO-138 compatible (Sorry...)
+- Rewritten for Atollic trueSTUDIO (Yea... Real debugging)
+- Now using internal digital trigger through ADC IRQ (So trigger level can now be correlated to real voltage)
+- Lots of new features like voltage overlay, markers, auto cal
 
 ## Features
-- Two analog channels
-- Two digital logic channels (SWDIO and SWDIO pins (PA13 and PA14) on board)
-- Serial port interface for captured waveform data
-- Trigger source selectable from Analog Channel 1 or Digital Channel
-- Option to use rotary encoder instead of + - and SEL switches
-- 2K sample depth
+- Support 1 Analog and up to 3 Digital Channels
+- Trigger on rising/falling/both edges
+- Trigger on Analog, Digital 1,2,3 Signal
+- Single/Norm/Auto Trigger Mode
+- Exact trigger voltage
+- Serial Data Dump
+- Automatic Zero-Level Cal for all gain-stages
+- Voltmeter mode (Averaged over last 10 samples)
+- Signal Statistics Display
+- Cursors for Analog Signal
+- Load/Store Waveform to/from Flash
+- Zoom Out Display (See more data with full sampling Rate)
+- "Persistence" Mode
+- Variable Signal Size for Digital Signal Waveforms
+- "loop" mode to scroll current input-values
+- AC/DC mode
+- 3K Sampling Depth
+- Buttons not blocked during sampling
 
-This firmware can be used on stock DSO-138 hardware as well. Select one of the pre-compiled binaries to suit the board. Follow the firmware upgrade instructions for DSO-138. At any time, you can reflash DSO-138 with JYE Tech provided firmware.
+## Images
 
-# Cost
-Extra features come at an additional cost. In the case of DLO-138, it is the loss of lowest timebase. Maximum sampling rate in DLO-138 is 20 µs/div instead of 10 µs/div. In the 20 µs/div range, firmware under-samples ADC channels, often reading same data twice. To use the second analog channel, analog front end has to be duplicated on a daughter board. On a stock hardware, this firmware can be used to provide two digital logic channels.
+### Features
+![Features](/Pics/features.JPG)
 
-# Build
-The build environment uses Arduino. For help with setting up IDE visit http://www.stm32duino.com
+### Stats Display
+![Stats](/Pics/stats.JPG)
 
-# Hardware
-Following changes can be applied selectively, to get maximum functionality from board. The firmware can be run on unmodified hardware as well.
-![Mod Schematic](https://github.com/ardyesp/DLO-138/blob/master/pics/HardwareMod.png)
+### Voltage Display
+![Voltage](/Pics/voltage.JPG)
 
-# Usage:
-	Push button in encoder (SEL if using switches) moves focus to next parameter
-	Left/Right turn in encoder (+/- if using switches) changes the parameter which is in focus
-	Short press OK to HOLD the waveform and output it on serial port
-	Long press OK button:
-	
-		Focus				Action
-		Trigger Level		Zero the trigger level to Analog channel 1
-		Wave X scrollbar	Center waveform on screen (at trigger point)
-		Wave Y cursor		Zero the cursor. If Analog CH1 coupling is GND, waveform reference base is set 
-		Other				Toggle on screen Analog CH1 statistics display
+### Zoom
+![Zoom](/Pics/zoom.JPG)
 
-	Press and hold OK button at power up to reset settings to default
-		
+### Digital
+![Digital](/Pics/digital.JPG)
 
-# References
-DSO-138 - http://www.jyetech.com/Products/LcdScope/e138.php
+### Cursors
+![Cursors](/Pics/cursors.JPG)
 
-STM32Duino - http://www.stm32duino.com
+## Key Assignment
+- Encoder Left/Right -> Change Value
 
-STM32F103 - http://www.st.com/en/microcontrollers/stm32f103.html
+- Encoder Button
+  Short Press -> Select next field
+              -> (In Cursor Mode select next cursor)
+  Long Press -> Activate Function
+     -> A1 -> Enable Cursor Mode
+	 -> D1,D2,D3 -> Change Waveform Size
+	 -> Function -> Execute selected function
+	 -> Others -> Restore Defaults
 
-Adafruint Graphics Library - https://github.com/adafruit/Adafruit-GFX-Library
+- OK Button
+  Short Press -> hold/run mode
+  Long Press -> Show Analog Signal Stats
+  
+ - Trigger Button
+   Short Press -> Activate Trigger Level
+   Long Press -> Enable/Disable Trace Persistence
 
-Parallel 8 bit ILI9341 library - https://github.com/stevstrong/Adafruit_TFTLCD_8bit_STM32
+- Sec/Div Button
+  Short Press -> Select Time Base Selection
+
+- V/Div Button
+  Short Press -> Select Voltage Range Selection
+  Long Press -> Enable/Disable Voltage Meter Mode
+
+- Pressing V/Div,Sec/Div/Trigger while field is activated toggles through settings
+- Hold OK button at power-up -> Reset all values to defaults
+
+### Cursor Mode
+There are some limitations in cursor mode. While it is possible to use cursors both on signals in hold mode and running mode only the functions available via the buttons are available to modify.
+Short-Press on the encoder button returns back to cursor mode, long press on encoder-button disables cursor mode. 
+
+### Loop Mode
+In Loop mode samples will be added on the right side of the waveform. The buffer is limited to the width of the screen. (Works espcially well with voltage display enabled as voltmeter with history...)
+
+### AutoCal
+The AutoCal function recalibrates the zero-point for all gain-settings automatically. Before triggering it make sure to set the coupling switch to GND and to disconnect any singal input.
+AutoCal data well be lost after restoring the default settings.
+
+### Digital Signals
+Digital Signals can be connected to PB13/PB14/PB15. There's no protection on those ports so it better be max 3.3V logic level....
+
+## Building Open DSO-150
+Open DSO-150 should build directly after opening the project in the free STM32 version of Atollic trueSTUDIO.
+https://atollic.com/truestudio/
+
+It should also compile under the System Workbench for STM32 after creating a new project and importing the source files but I haven't tried that...
+
+With an STLink V2 probe it is very easy to both program and debug the scope via the DebugWire Link.
+(I haven't tried uploading hex-files through the serial port with the STM32 Bootloader but there's no reason it shouldn't work...)
+
+## Libraries Used
+The code for the graphics library is based on a heavily modified/optimized version of the Adafruit_GFX/Adafruit_TFT libraries. 	
+
+## TODO
+- If somebody has a working example of using a STM32 timer to trigger the ADC and then have the ADC trigger an IRQ let me know.... Should work but I had no luck getting that to work...
+
+## References
+- Adafruit Graphics Library - https://github.com/adafruit/Adafruit-GFX-Library
+- Parallel 8 bit ILI9341 library - https://github.com/stevstrong/Adafruit_TFTLCD_8bit_STM32
 
  
 
