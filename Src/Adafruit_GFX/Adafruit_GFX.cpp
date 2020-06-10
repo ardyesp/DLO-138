@@ -35,8 +35,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include "glcdfont.c"
 #include <stddef.h>
-#include <stdlib.h>
 #include <stdio.h>
+//#include <stdlib.h>
 #include "tiny_printf.h"
 #include <string.h>
 
@@ -950,17 +950,19 @@ void tft_print(int num)
 	tft_printf("%d",num);
 }
 
+char buf[64];
 void tft_printf(const char *fmt, ...)
 {
-	int length = 0;
-	char* buf;
+//	int length = 0;
+//	char* buf;
 	va_list va;
 	va_start(va, fmt);
-	length = ts_formatlength(fmt, va);
-	buf = (char*)malloc(length);
+//	length = ts_formatlength(fmt, va);
+//	buf = (char*)malloc(length);
+//	while (buf == 0x0000){}; //Fail on no memory
 	ts_formatstring(buf, fmt, va);
 	tft_print((char*)buf);
-	free(buf);
+//	free(buf);
 	va_end(va);
 }
 

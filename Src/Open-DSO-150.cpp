@@ -16,7 +16,7 @@ void dsosetup()
 	uint16_t disp;
 
 	DBG_PRINT(FIRMWARE_TARGET);
-	DBG_PRINT("Ver:%d.%d\n",(uint16_t)FIRMWARE_VERSION_MAJOR,(uint16_t)FIRMWARE_VERSION_MINOR);
+	DBG_PRINT(" Ver:%d.%d\n",(uint16_t)FIRMWARE_VERSION_MAJOR,(uint16_t)FIRMWARE_VERSION_MINOR);
 
 
 	// set digital and analog stuff
@@ -31,7 +31,7 @@ void dsosetup()
 
   // init the IL9341 display
   disp = initDisplay();
-  DBG_PRINT("Display ID: 0x%x\n",disp);
+  DBG_PRINT("\nDisplay ID: 0x%x\n\n",disp);
 }
 
 

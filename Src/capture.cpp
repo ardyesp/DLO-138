@@ -6,6 +6,7 @@
 #include "interface.hpp"
 #include "display.hpp"
 #include "io.hpp"
+#include "tiny_printf.h"
 #include "Adafruit_GFX/Adafruit_GFX.hpp"
 #include <string.h>
 

@@ -129,7 +129,7 @@ void encoderChanged(int steps)
 			if(steps > 0) decrementTimeBase(); else	incrementTimeBase();
 			break;
 		case L_voltagerange:
-			if(steps > 0) decrementVoltageRange(); else incrementVoltageRange();
+			if(steps > 0) incrementVoltageRange(); else decrementVoltageRange();
 			break;
 		case L_function:
 			if(steps > 0) incrementFunc(); else decrementFunc();

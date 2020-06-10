@@ -6,7 +6,7 @@
 #include "capture.hpp"
 #include "io.hpp"
 #include "global.h"
-
+#include "tiny_printf.h"
 
 extern t_config config;
 extern uint16_t ch1Capture[NUM_SAMPLES];
@@ -1093,6 +1093,8 @@ uint16_t initDisplay()
 void banner()
 // ------------------------
 {
+char fw_ver[8];
+
 tft_setTextColor(ILI9341_WHITE, ILI9341_BLACK);
 //tft_setTextSize(2);
 tft_setFont(&FreeSansBold12pt7b);
@@ -1105,9 +1107,15 @@ tft_setCursor(30, 60);
 tft_print((char*)"Digital Storage Oscilloscope");
 
 tft_setTextSize(1);
+tft_setTextColor(ILI9341_WHITE, ILI9341_BLACK);
 tft_setCursor(30, 80);
-tft_printf("Storage Depth: %d Samples",(int16_t)NUM_SAMPLES);
+tft_print((char *)"Storage Depth: ");
+sprintf(fw_ver,"%d",NUM_SAMPLES);
+tft_setTextColor(ILI9341_YELLOW, ILI9341_BLACK);
+tft_print((char*)fw_ver);
+tft_print((char *)" Samples");
 
+tft_setTextColor(ILI9341_WHITE, ILI9341_BLACK);
 tft_setCursor(30, 100);
 tft_print((char*)"Usage: ");
 tft_setTextColor(ILI9341_YELLOW, ILI9341_BLACK);
@@ -1117,16 +1125,12 @@ tft_setTextColor(ILI9341_WHITE, ILI9341_BLACK);
 tft_setCursor(30, 120);
 tft_print((char*)FIRMWARE_INFO);
 
+tft_setTextColor(ILI9341_WHITE, ILI9341_BLACK);
 tft_setCursor(30, 140);
 tft_print((char*)"Firmware version: ");
-tft_print((char*)FIRMWARE_VERSION_MAJOR);
-tft_print((char*)".");
-tft_print((char*)FIRMWARE_VERSION_MINOR);
-
-tft_setCursor(30, 160);
-tft_print((char*)"Sample Depth: ");
-tft_print((char*)NUM_SAMPLES);
-
+sprintf(fw_ver,"%d.%d",FIRMWARE_VERSION_MAJOR,FIRMWARE_VERSION_MINOR);
+tft_setTextColor(ILI9341_YELLOW, ILI9341_BLACK);
+tft_print((char*)fw_ver);
 
 tft_setTextSize(1);
 tft_setCursor(30, 210);

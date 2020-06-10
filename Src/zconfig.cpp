@@ -8,6 +8,7 @@
 #include "interface.hpp"
 #include "capture.hpp"
 #include "io.hpp"
+#include "tiny_printf.h"
 #include "EEPROM/eeprom.hpp"
 
 #define PAGE_WAVEFORM_START 111
@@ -41,7 +42,7 @@ void autoSafe(void)
   if (0 != memcmp(&config, &oldConfig,sizeof(t_config)))
   {
       formatSaveConfig();
-      oldConfig = config;
+      memcpy(&oldConfig,&config,sizeof(t_config));
   }
 }
 
@@ -53,22 +54,22 @@ void loadConfig(bool reset)
 
 
 	// read preamble
+	loadDefaults();
 	if(reset)
 	{
-	    loadDefaults();
 		formatSaveConfig();
-		oldConfig = config;
+		memcpy(&oldConfig,&config,sizeof(t_config));
 	}
 	else
 	{
 		//Load Defaults
 		EE_Reads(0,sizeof(t_config),(uint32_t*)&config);
 		//Marker Check
-		if ((config.configID[0] != 'D') || (config.configID[1] = 'S') || (config.configID[2] = 'O') || (config.configID[3] = 'S'))
+		if ((config.configID[0] != 'D') || (config.configID[1] != 'S') || (config.configID[2] != 'O') || (config.configID[3] != 'S'))
 		{
 			DBG_PRINT("No Config ID, creating defaults\n");
 			//Create defaults
-		    loadDefaults();
+			loadDefaults();
 			formatSaveConfig();
 		}
 		else
@@ -78,15 +79,16 @@ void loadConfig(bool reset)
 			{
 				DBG_PRINT("Wrong Firmware ID, creating defaults\n");
 				//Create defaults
-			    loadDefaults();
+				loadDefaults();
 				formatSaveConfig();
 			}
 		}
 
-		oldConfig = config;
+		memcpy(&oldConfig,&config,sizeof(t_config));
 	}
 
-	
+    //printConfig();
+
 	//Set Parameters
 	setTimeBase(config.currentTimeBase);
 	setTriggerType(config.triggerType);
@@ -96,8 +98,6 @@ void loadConfig(bool reset)
     setZoomFactor(config.zoomFactor);
     setTriggerSource(config.triggerSource);
     setVoltageRange(config.currentVoltageRange);
-
-    printConfig();
 }
 
 // ------------------------
@@ -209,17 +209,19 @@ void printConfig(void)
     printf("Display Persistence: %d\n",config.persistence_on);
 
     printf("A1 Zerocal ");
-    for (ii=0;ii<RNG_5mV+1;ii++)
+    for (ii=0;ii<(RNG_5mV+1);ii++)
     {
     	printf("%d,",config.zeroVoltageA1Cal[ii]);
     }
+
     printf("\n");
 
     printf("A1 Gaincal ");
-    for (ii=0;ii<RNG_5mV+1;ii++)
+    for (ii=0;ii<(RNG_5mV+1);ii++)
     {
     	printf("%d,",(int)(config.adcMultiplier[ii]*1000.0));
     }
+
     printf("\n");
 }
 
