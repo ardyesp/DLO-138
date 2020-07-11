@@ -10,6 +10,11 @@
 // ------------------------
 void setup()	{
 // ------------------------
+	
+ 	afio_cfg_debug_ports(AFIO_DEBUG_NONE); //added to disable the debug port. My stock DSO-138 won't allow the screen to work without this
+	// see http://www.stm32duino.com/viewtopic.php?t=1130#p13919 for more info
+	
+	
 	DBG_INIT(SERIAL_BAUD_RATE);
 	DBG_PRINT("Dual channel O Scope with two logic channels, ver: ");
 	DBG_PRINTLN(FIRMWARE_VERSION);
