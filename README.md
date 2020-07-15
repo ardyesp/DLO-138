@@ -20,6 +20,10 @@ Extra features come at an additional cost. In the case of DLO-138, it is the los
 # Build
 The build environment uses Arduino. For help with setting up IDE visit http://www.stm32duino.com
 
+For graphics output, this project depends on the Adafruit GFX Library v1.1.4.
+Install it via the Library Manager of your Arduino IDE.
+Other/newer versions of this library are likely to not compile or will give you a black screen.
+
 # Hardware
 Following changes can be applied selectively, to get maximum functionality from board. The firmware can be run on unmodified hardware as well.
 ![Mod Schematic](https://github.com/ardyesp/DLO-138/blob/master/pics/HardwareMod.png)
